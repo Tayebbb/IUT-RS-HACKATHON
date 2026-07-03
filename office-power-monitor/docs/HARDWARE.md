@@ -12,13 +12,13 @@
 
 | Qty | Item                                               | Purpose                                 | Notes                                      |
 | --: | -------------------------------------------------- | --------------------------------------- | ------------------------------------------ |
-|   5 | Sonoff BASICR4 / Shelly Plus 1PM (10A)             | Individually switch + meter each device | 1 per fan, 1 per light                     |
+|   6 | Sonoff BASICR4 / Shelly Plus 1PM (10A)             | Individually switch + meter each device | 1 per fan, 1 per light                     |
 |   5 | CT clamp (SCT-013-030, 30A) _or_ built-in metering | Measure real-time current draw          | Only needed if the relay lacks metering    |
 |   1 | ESP32 DevKit v1                                    | Room-level aggregator / relay bridge    | Optional if all relays speak MQTT natively |
 |   1 | 5V/2A PSU                                          | Powers the ESP32                        | —                                          |
 |   1 | Wi-Fi AP with 2.4 GHz                              | Network for all IoT nodes               | Isolated VLAN recommended                  |
 
-**Total for the office (3 rooms):** 15 smart relays with metering, 3 optional
+**Total for the office (3 rooms):** 18 smart relays with metering, 3 optional
 ESP32 aggregators.
 
 ---
@@ -142,7 +142,7 @@ publishing to MQTT.
 
 ```
    +----------------+       Wi-Fi (IoT VLAN)      +----------------------+
-   | 15 metering    | -------------------------> | Mosquitto MQTT broker |
+   | 18 metering    | -------------------------> | Mosquitto MQTT broker |
    | relays         |                            +----------+------------+
    +----------------+                                       |
                                                             v

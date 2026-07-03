@@ -7,10 +7,12 @@ class DemoService {
    * @param {Object} deps
    * @param {import('../store').DeviceStore} deps.deviceStore
    * @param {import('../simulator/Simulator').Simulator} deps.simulator
+   * @param {import('../store/energyStore').EnergyStore} [deps.energyStore]
    */
-  constructor({ deviceStore, simulator }) {
+  constructor({ deviceStore, simulator, energyStore }) {
     this._devices = deviceStore;
     this._simulator = simulator;
+    this._energyStore = energyStore;
   }
 
   /**
@@ -30,6 +32,9 @@ class DemoService {
             this._devices.updateDevice(d.id, 'off', nowMs);
           }
         }
+        if (this._energyStore) {
+          this._energyStore.reset(12400); // Seed 12.4 kWh for persuasive demo figures
+        }
         return { message: 'All devices turned OFF' };
 
       case 'high-power':
@@ -46,7 +51,7 @@ class DemoService {
         // Turn everything in Drawing Room ON, and leave others OFF to trigger room_on_after_hours if outside office hours,
         // or we can just turn a specific device ON.
         for (const d of all) {
-          const target = d.roomId === 'drawing_room' ? 'on' : 'off';
+          const target = d.room === 'drawing-room' ? 'on' : 'off';
           if (d.status !== target) {
             this._devices.updateDevice(d.id, target, nowMs);
           }

@@ -2,7 +2,7 @@
 
 const { io: ioClient } = require('socket.io-client');
 const config = require('./config');
-const { formatAlert } = require('./formatters');
+const { formatIncident } = require('./formatters');
 const { polish } = require('./llm');
 
 /**
@@ -24,21 +24,21 @@ function startAlertRelay(discordClient) {
   });
 
   /** @type {Set<string>} */
-  const knownAlertIds = new Set();
+  const knownIncidentIds = new Set();
   let bootstrapped = false;
 
   socket.on('connect', () => {
     console.log('[alert-relay] connected to backend', config.backendWsUrl);
   });
 
-  socket.on('alerts:update', async (alerts) => {
-    if (!Array.isArray(alerts)) {
+  socket.on('incidents:update', async (incidents) => {
+    if (!Array.isArray(incidents)) {
       return;
     }
 
     if (!bootstrapped) {
-      for (const a of alerts) {
-        knownAlertIds.add(a.id);
+      for (const inc of incidents) {
+        knownIncidentIds.add(inc.id);
       }
       bootstrapped = true;
       return;
@@ -46,10 +46,10 @@ function startAlertRelay(discordClient) {
 
     /** @type {any[]} */
     const fresh = [];
-    for (const a of alerts) {
-      if (a.status === 'active' && !knownAlertIds.has(a.id)) {
-        knownAlertIds.add(a.id);
-        fresh.push(a);
+    for (const inc of incidents) {
+      if (inc.status === 'active' && !knownIncidentIds.has(inc.id)) {
+        knownIncidentIds.add(inc.id);
+        fresh.push(inc);
       }
     }
     if (fresh.length === 0) {
@@ -67,9 +67,9 @@ function startAlertRelay(discordClient) {
       if (!channel?.isTextBased?.()) {
         continue;
       }
-      for (const alert of fresh) {
+      for (const incident of fresh) {
         try {
-          const rawMessage = formatAlert(alert);
+          const rawMessage = formatIncident(incident);
           const polishedMessage = await polish(rawMessage, 'urgent automated alert');
           await channel.send(polishedMessage);
         } catch (err) {

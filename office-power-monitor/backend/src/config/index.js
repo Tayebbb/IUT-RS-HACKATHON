@@ -34,7 +34,8 @@ const config = {
   minDwellSeconds: toInt(process.env.MIN_DWELL_SECONDS, 60),
   officeHourStart: toInt(process.env.OFFICE_HOUR_START, 9),
   officeHourEnd: toInt(process.env.OFFICE_HOUR_END, 17),
-  roomOnMaxHours: toInt(process.env.ROOM_ON_MAX_HOURS, 2)
+  roomOnMaxHours: toInt(process.env.ROOM_ON_MAX_HOURS, 2),
+  tariffBdtPerKwh: Number(process.env.TARIFF_BDT_PER_KWH || 7.0)
 };
 
 module.exports = config;

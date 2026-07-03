@@ -3,6 +3,7 @@
 const powerService = require('./powerService');
 const energyService = require('./energyService');
 const roomService = require('./roomService');
+const config = require('../config');
 
 /**
  * @typedef {import('../store/deviceStore').DeviceStore} DeviceStore
@@ -48,6 +49,10 @@ function buildUsageSnapshot(deviceStore, energyStore) {
   const inactiveCount = powerService.inactiveDevicesCount(devices);
   
   const energy = energyService.snapshot(energyStore);
+  const tariff = config.tariffBdtPerKwh || 7.0;
+  const energyCostBdt = Number((energy.energyTodayKwh * tariff).toFixed(2));
+  const projectedMonthlyKwh = Number((energy.energyTodayKwh * 30).toFixed(2));
+  const projectedMonthlyCostBdt = Number((energy.energyTodayKwh * 30 * tariff).toFixed(2));
 
   return {
     timestamp: Date.now(),
@@ -71,6 +76,9 @@ function buildUsageSnapshot(deviceStore, energyStore) {
     },
     energyTodayWh: energy.energyTodayWh,
     energyTodayKwh: energy.energyTodayKwh,
+    energyCostBdt,
+    projectedMonthlyKwh,
+    projectedMonthlyCostBdt,
     samples: energy.samples
   };
 }

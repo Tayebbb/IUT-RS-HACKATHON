@@ -2,7 +2,7 @@
 
 const apiClient = require('./apiClient');
 const formatters = require('./formatters');
-const { polish } = require('./llm');
+const { polish, askQuestion } = require('./llm');
 
 /**
  * @typedef {Object} CommandContext
@@ -77,6 +77,30 @@ const commands = [
         lines.push(`\`${cmd.usage}\` — ${cmd.description}`);
       }
       return lines.join('\n');
+    }
+  },
+  {
+    name: 'ask',
+    description: 'Ask a free-form question about the office power/alert state.',
+    usage: '!ask <question>',
+    async run({ args, message }) {
+      const question = args.join(' ').trim();
+      if (!question) {
+        return 'Usage: `!ask <your question>` (e.g. `!ask which room is drawing the most power?`)';
+      }
+
+      if (message.channel?.sendTyping) {
+        message.channel.sendTyping().catch(() => {});
+      }
+
+      const placeholder = await message.reply('🤔 Checking the office data...');
+      try {
+        const reply = await askQuestion(question);
+        await placeholder.edit(reply.length > 1900 ? reply.slice(0, 1900) + '\n…' : reply);
+      } catch (err) {
+        await placeholder.edit(`Error: ${err.message}`).catch(() => {});
+      }
+      return null;
     }
   }
 ];

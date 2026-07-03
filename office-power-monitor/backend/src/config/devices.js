@@ -25,7 +25,7 @@ const WATTAGE = Object.freeze({
 function buildDeviceCatalog() {
   const devices = [];
   for (const room of ROOMS) {
-    for (let i = 1; i <= 2; i += 1) {
+    for (let i = 1; i <= 3; i += 1) {
       devices.push({
         id: `${room.id}-fan-${i}`,
         label: `Fan ${i}`,
