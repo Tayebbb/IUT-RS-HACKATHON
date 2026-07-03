@@ -1,4 +1,4 @@
-'use strict';
+﻿'use strict';
 
 const { EventEmitter } = require('events');
 const { buildDeviceCatalog, ROOMS } = require('../config/devices');
@@ -8,30 +8,53 @@ const { buildDeviceCatalog, ROOMS } = require('../config/devices');
  * @typedef {'on'|'off'} DeviceStatus
  *
  * @typedef {Object} Device
- * @property {string} id
- * @property {string} label
- * @property {DeviceType} type
- * @property {string} room               Room id.
- * @property {DeviceStatus} status
- * @property {number} wattage            Nameplate wattage.
- * @property {number} power              Instantaneous power draw in watts.
- * @property {string} lastChanged        ISO timestamp of last status transition.
+ * @property {string} id           Stable identifier, e.g. "drawing-room-fan-1".
+ * @property {string} label        Human-readable label, e.g. "Fan 1".
+ * @property {string} room         Room id the device belongs to.
+ * @property {DeviceType} type     "fan" | "light".
+ * @property {DeviceStatus} status "on" | "off".
+ * @property {number} wattage      Nameplate wattage (Fan = 60W, Light = 15W).
+ * @property {number} power        Instantaneous draw in watts (0 when off).
+ * @property {string} lastChanged  ISO-8601 timestamp of last status transition.
  *
  * @typedef {Object} DeviceChange
  * @property {Device} device
  * @property {DeviceStatus} previousStatus
  * @property {DeviceStatus} nextStatus
- * @property {number} timestamp          Epoch ms.
+ * @property {number} timestamp    Epoch ms when the transition happened.
  */
 
 /**
- * DeviceStore is the single, in-memory source of truth for device state.
- * It emits:
- *   - 'device:changed'  (change: DeviceChange)  when a single device's status flips
- *   - 'devices:changed' (devices: Device[])     after any batch mutation completes
+ * DeviceStore - single, in-memory source of truth for all 15 office devices.
  *
- * The store owns no side effects beyond state + events. Callers (simulator,
- * alert engine, socket layer) subscribe to react.
+ * ## Devices
+ * Three rooms (Drawing Room, Work Room 1, Work Room 2), each containing:
+ *   - Fan 1   (60 W)
+ *   - Fan 2   (60 W)
+ *   - Light 1 (15 W)
+ *   - Light 2 (15 W)
+ *   - Light 3 (15 W)
+ *
+ * Total: 15 devices, max combined draw = 495 W.
+ *
+ * ## Events emitted
+ * - 'device:changed'   (change: DeviceChange)  - one device flipped status.
+ * - 'devices:changed'  (devices: Device[])     - after any batch mutation.
+ *
+ * ## Spec-required public API
+ * - getAllDevices()
+ * - getDeviceById(id)
+ * - getDevicesByRoom(roomId)
+ * - updateDevice(id, status)
+ * - updateMultipleDevices(updates)
+ * - resetStore()
+ *
+ * ## Backward-compat aliases (keep existing consumers working)
+ * - getAll()          -> getAllDevices()
+ * - getById(id)       -> getDeviceById(id)
+ * - getByRoom(roomId) -> getDevicesByRoom(roomId)
+ * - setStatus(id, s)  -> updateDevice(id, s)
+ * - applyBatch(upd)   -> updateMultipleDevices(upd)
  */
 class DeviceStore extends EventEmitter {
   constructor() {
@@ -41,8 +64,13 @@ class DeviceStore extends EventEmitter {
     this._initialize();
   }
 
+  // -------------------------------------------------------------------------
+  // Private helpers
+  // -------------------------------------------------------------------------
+
   /**
-   * Seed the store with the static device catalog. All devices start OFF.
+   * Seed (or re-seed) the store from the static device catalog.
+   * All devices start in the "off" state.
    * @private
    */
   _initialize() {
@@ -63,48 +91,61 @@ class DeviceStore extends EventEmitter {
     }
   }
 
+  // -------------------------------------------------------------------------
+  // Spec-required public API
+  // -------------------------------------------------------------------------
+
   /**
-   * @returns {Device[]} A defensive copy of all devices.
+   * Return a defensive copy of every device in the store.
+   * Mutations to the returned array or its objects never affect stored state.
+   *
+   * @returns {Device[]}
    */
-  getAll() {
+  getAllDevices() {
     return Array.from(this._byId.values()).map((d) => ({ ...d }));
   }
 
   /**
-   * @param {string} id
-   * @returns {Device|undefined}
+   * Look up a single device by its stable id.
+   *
+   * @param {string} id  e.g. "drawing-room-fan-1"
+   * @returns {Device|undefined}  undefined when the id is unknown.
    */
-  getById(id) {
+  getDeviceById(id) {
     const d = this._byId.get(id);
     return d ? { ...d } : undefined;
   }
 
   /**
-   * @param {string} roomId
-   * @returns {Device[]}
+   * Return all devices belonging to a given room.
+   *
+   * @param {string} roomId  e.g. "work-room-1"
+   * @returns {Device[]}     Empty array when the roomId is unknown.
    */
-  getByRoom(roomId) {
-    return this.getAll().filter((d) => d.room === roomId);
+  getDevicesByRoom(roomId) {
+    return this.getAllDevices().filter((d) => d.room === roomId);
   }
 
   /**
-   * @returns {ReadonlyArray<{id:string,name:string}>}
-   */
-  getRooms() {
-    return ROOMS;
-  }
-
-  /**
-   * Attempt to set a device's status. No-op if the status is unchanged.
-   * @param {string} id
+   * Flip a single device's status.
+   *
+   * No-op when the device id is unknown or the status is already correct.
+   * On a real transition: updates `power` and `lastChanged`, then emits
+   * 'device:changed'.
+   *
+   * @param {string}       id
    * @param {DeviceStatus} nextStatus
-   * @param {number} [nowMs=Date.now()]
-   * @returns {DeviceChange|null} null when unchanged or device missing.
+   * @param {number}       [nowMs]   Clock override for testing. Default: Date.now().
+   * @returns {DeviceChange|null}   null when no transition occurred.
    */
-  setStatus(id, nextStatus, nowMs = Date.now()) {
+  updateDevice(id, nextStatus, nowMs = Date.now()) {
     const device = this._byId.get(id);
-    if (!device) return null;
-    if (device.status === nextStatus) return null;
+    if (!device) {
+      return null;
+    }
+    if (device.status === nextStatus) {
+      return null;
+    }
 
     const previousStatus = device.status;
     device.status = nextStatus;
@@ -123,39 +164,122 @@ class DeviceStore extends EventEmitter {
   }
 
   /**
-   * Apply a batch of status updates atomically and emit a single
-   * 'devices:changed' event with the full new snapshot afterwards.
-   * @param {Array<{id:string,status:DeviceStatus}>} updates
-   * @param {number} [nowMs=Date.now()]
-   * @returns {DeviceChange[]} Only the changes that actually occurred.
+   * Apply a batch of status updates atomically.
+   *
+   * All transitions are committed before any event fires, so listeners always
+   * receive a consistent snapshot. A single 'devices:changed' event fires
+   * after the batch when at least one device actually changed.
+   *
+   * Unknown ids and no-op transitions are silently skipped.
+   *
+   * @param {Array<{id:string, status:DeviceStatus}>} updates
+   * @param {number} [nowMs]  Clock override. Default: Date.now().
+   * @returns {DeviceChange[]}  Only the transitions that actually occurred.
    */
-  applyBatch(updates, nowMs = Date.now()) {
+  updateMultipleDevices(updates, nowMs = Date.now()) {
     /** @type {DeviceChange[]} */
     const changes = [];
     for (const u of updates) {
-      const change = this.setStatus(u.id, u.status, nowMs);
-      if (change) changes.push(change);
+      const change = this.updateDevice(u.id, u.status, nowMs);
+      if (change) {
+        changes.push(change);
+      }
     }
     if (changes.length > 0) {
-      this.emit('devices:changed', this.getAll());
+      this.emit('devices:changed', this.getAllDevices());
     }
     return changes;
   }
 
   /**
-   * How many seconds since this device last changed status.
+   * Reset every device to the initial "off" state.
+   *
+   * Existing EventEmitter listeners are preserved; they receive a
+   * 'devices:changed' event with the fresh all-off snapshot.
+   *
+   * Typical use cases:
+   *   - Test setup / teardown.
+   *   - Administrative "kill all devices" command (Discord bot).
+   *   - Recovery from a corrupted simulation state.
+   */
+  resetStore() {
+    this._byId.clear();
+    this._initialize();
+    this.emit('devices:changed', this.getAllDevices());
+  }
+
+  // -------------------------------------------------------------------------
+  // Additional helpers used by existing consumers
+  // -------------------------------------------------------------------------
+
+  /**
+   * Return the list of office rooms (id + name).
+   * @returns {ReadonlyArray<{id:string, name:string}>}
+   */
+  getRooms() {
+    return ROOMS;
+  }
+
+  /**
+   * Seconds elapsed since the device last changed status.
+   * Used by the Simulator to enforce the minimum dwell time.
+   *
    * @param {string} id
-   * @param {number} [nowMs=Date.now()]
-   * @returns {number}
+   * @param {number} [nowMs]
+   * @returns {number}  0 when the device id is unknown.
    */
   getDwellSeconds(id, nowMs = Date.now()) {
     const device = this._byId.get(id);
-    if (!device) return 0;
+    if (!device) {
+      return 0;
+    }
     return Math.max(0, Math.floor((nowMs - Date.parse(device.lastChanged)) / 1000));
+  }
+
+  // -------------------------------------------------------------------------
+  // Backward-compat aliases
+  // Existing consumers (routes, services, simulator, broadcaster) use these
+  // shorter names. Each delegates to the spec-required method above so there
+  // is exactly one implementation per operation.
+  // -------------------------------------------------------------------------
+
+  /** @see DeviceStore#getAllDevices */
+  getAll() {
+    return this.getAllDevices();
+  }
+
+  /** @see DeviceStore#getDeviceById */
+  getById(id) {
+    return this.getDeviceById(id);
+  }
+
+  /** @see DeviceStore#getDevicesByRoom */
+  getByRoom(roomId) {
+    return this.getDevicesByRoom(roomId);
+  }
+
+  /**
+   * Alias for updateDevice. Kept for Simulator backward-compat.
+   * @see DeviceStore#updateDevice
+   */
+  setStatus(id, nextStatus, nowMs = Date.now()) {
+    return this.updateDevice(id, nextStatus, nowMs);
+  }
+
+  /**
+   * Alias for updateMultipleDevices. Kept for Simulator backward-compat.
+   * @see DeviceStore#updateMultipleDevices
+   */
+  applyBatch(updates, nowMs = Date.now()) {
+    return this.updateMultipleDevices(updates, nowMs);
   }
 }
 
-/** Singleton instance shared across the backend. */
+// -----------------------------------------------------------------------------
+// Singleton
+// Shared instance imported by: Simulator, AlertEngine, SocketBroadcaster,
+// REST route handlers, and the Discord bot.
+// -----------------------------------------------------------------------------
 const deviceStore = new DeviceStore();
 
 module.exports = { DeviceStore, deviceStore };
