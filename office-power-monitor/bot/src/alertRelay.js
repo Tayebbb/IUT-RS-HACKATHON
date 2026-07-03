@@ -3,6 +3,7 @@
 const { io: ioClient } = require('socket.io-client');
 const config = require('./config');
 const { formatAlert } = require('./formatters');
+const { polish } = require('./llm');
 
 /**
  * AlertRelay listens on the backend Socket.IO stream and posts *newly
@@ -68,7 +69,9 @@ function startAlertRelay(discordClient) {
       }
       for (const alert of fresh) {
         try {
-          await channel.send(formatAlert(alert));
+          const rawMessage = formatAlert(alert);
+          const polishedMessage = await polish(rawMessage, 'urgent automated alert');
+          await channel.send(polishedMessage);
         } catch (err) {
           console.warn('[alert-relay] send failed:', err.message);
         }

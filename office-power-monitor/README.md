@@ -42,6 +42,39 @@ The default configuration simulates an office with **3 rooms** (Drawing Room, Wo
 | :---: | :---: | :---: |
 | <img src="https://via.placeholder.com/400x250.png?text=Dashboard+UI" alt="Dashboard UI" width="400"> | <img src="https://via.placeholder.com/400x250.png?text=Floor+Plan" alt="Interactive SVG Map" width="400"> | <img src="https://via.placeholder.com/400x250.png?text=Discord+Bot" alt="Discord Integrations" width="400"> |
 
+### 🎬 End-to-End Demo (Shared Backend Proof)
+
+A single GIF that proves both interfaces read from **one** live backend: toggle a
+device from the dashboard → the tile updates in real time → the Alert Engine
+fires → the Discord bot posts an embed in the channel — all within seconds.
+
+<p align="center">
+  <img src="docs/media/demo-end-to-end.gif" alt="End-to-end demo: dashboard tile toggling and Discord alert firing from the same backend" width="720">
+</p>
+
+<details>
+<summary><b>How this GIF was recorded (reproduce it)</b></summary>
+
+1. Start all three services (see [Setup & Installation](#-setup--installation)):
+   `backend` (port 4000), `frontend` (port 5173), `bot` (with a valid
+   `DISCORD_TOKEN` and `ALERT_CHANNEL_IDS`).
+2. Arrange the screen side-by-side: React dashboard on the left, Discord channel
+   on the right.
+3. In the dashboard, open **Demo Controls** and toggle devices in a single room
+   (or `POST /api/demo/force-room` — see [docs/API.md](docs/API.md)) so the room
+   becomes fully ON.
+4. Fast-forward simulated time past `OFFICE_HOUR_END` (or temporarily set
+   `OFFICE_HOUR_END` low in `backend/.env`) so the alert engine trips
+   `room_on_after_hours` / `room_on_too_long`.
+5. Watch the `IncidentPanel` update live **and** the bot post an embed in the
+   configured Discord channel — both driven by the same Socket.IO stream from
+   `backend/src/sockets/socketBroadcaster.js`.
+6. Record with [ScreenToGif](https://www.screentogif.com/) (Windows) or
+   [Peek](https://github.com/phw/peek) (Linux); export at ≤ 10 fps, ≤ 8 MB,
+   save to `docs/media/demo-end-to-end.gif`.
+
+</details>
+
 ---
 
 ## 🏗️ Architecture & System Diagram
