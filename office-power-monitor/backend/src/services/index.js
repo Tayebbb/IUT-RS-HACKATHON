@@ -9,5 +9,6 @@ module.exports = {
   AlertService: require('./AlertService').AlertService,
   IncidentService: require('./IncidentService').IncidentService,
   RoomService: require('./roomService').RoomService,
-  UsageService: require('./usageService').UsageService
+  UsageService: require('./usageService').UsageService,
+  DemoService: require('./DemoService').DemoService
 };

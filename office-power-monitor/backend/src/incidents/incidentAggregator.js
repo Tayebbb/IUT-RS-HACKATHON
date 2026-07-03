@@ -148,6 +148,13 @@ class IncidentAggregator extends EventEmitter {
         };
         this._activeByRoom.set(roomKey, incident);
         this._byId.set(incident.id, incident);
+        
+        // Garbage collection for memory safety
+        if (this._byId.size > 500) {
+          const oldestKey = this._byId.keys().next().value;
+          this._byId.delete(oldestKey);
+        }
+
         this.emit('incident:opened', { ...incident, relatedAlerts: [...relatedAlerts] });
         changed = true;
       } else {

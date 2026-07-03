@@ -118,6 +118,13 @@ class AlertStore extends EventEmitter {
     };
     this._activeBySig.set(signature, alert);
     this._byId.set(alert.id, alert);
+    
+    // Garbage collection for memory safety
+    if (this._byId.size > 500) {
+      const oldestKey = this._byId.keys().next().value;
+      this._byId.delete(oldestKey);
+    }
+
     this.emit('alert:opened', { ...alert });
     return { alert: { ...alert }, opened: true };
   }

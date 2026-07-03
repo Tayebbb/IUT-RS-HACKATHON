@@ -18,7 +18,8 @@ const {
   RoomService,
   UsageService,
   AlertService,
-  IncidentService
+  IncidentService,
+  DemoService
 } = require('./services');
 
 /**
@@ -49,13 +50,15 @@ function bootstrap() {
   const usageService = new UsageService({ deviceStore, energyStore });
   const alertService = new AlertService({ alertStore });
   const incidentService = new IncidentService({ incidentAggregator });
+  const demoService = new DemoService({ deviceStore, simulator });
 
   registerRoutes(app, {
     deviceService,
     roomService,
     usageService,
     alertService,
-    incidentService
+    incidentService,
+    demoService
   });
 
   incidentAggregator.start();

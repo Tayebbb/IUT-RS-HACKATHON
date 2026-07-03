@@ -5,6 +5,7 @@ const { createRoomsRouter } = require('./roomsRouter');
 const { createUsageRouter } = require('./usageRouter');
 const { createAlertsRouter } = require('./alertsRouter');
 const { createIncidentsRouter } = require('./incidentsRouter');
+const { createDemoRouter } = require('./demoRouter');
 
 const requestLogger = require('../middleware/requestLogger');
 const errorHandler = require('../middleware/errorHandler');
@@ -30,6 +31,7 @@ function registerRoutes(app, deps) {
   app.use('/api/usage', createUsageRouter(deps));
   app.use('/api/alerts', createAlertsRouter(deps));
   app.use('/api/incidents', createIncidentsRouter(deps));
+  app.use('/api/demo', createDemoRouter(deps));
 
   // 404 for unknown /api routes
   app.use('/api', (_req, res) => {

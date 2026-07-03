@@ -106,6 +106,8 @@ export default [
       // React
       'react/react-in-jsx-scope': 'off', // React 17+ JSX transform
       'react/prop-types': 'off', // project uses JSDoc, not PropTypes
+      'react/jsx-uses-react': 'error',
+      'react/jsx-uses-vars': 'error',
       'react/jsx-key': 'error',
       'react/jsx-no-duplicate-props': 'error',
       'react/jsx-no-undef': 'error',

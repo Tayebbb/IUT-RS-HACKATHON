@@ -4,6 +4,7 @@ import RoomCard from './components/RoomCard.jsx';
 import PowerBreakdown from './components/PowerBreakdown.jsx';
 import IncidentPanel from './components/IncidentPanel.jsx';
 import OfficeLayout from './components/OfficeLayout.jsx';
+import DemoControls from './components/DemoControls.jsx';
 import { useLiveData } from './hooks/useLiveData.js';
 
 /**
@@ -43,6 +44,8 @@ export default function App() {
         <footer className="mt-10 text-center text-xs text-slate-500">
           Office Power Monitor · Realtime IoT telemetry · {connected ? 'Connected' : 'Offline'}
         </footer>
+        
+        <DemoControls />
       </div>
     </div>
   );
