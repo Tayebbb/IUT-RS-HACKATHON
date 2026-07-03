@@ -21,7 +21,7 @@ const SYSTEM_PROMPT =
  * @returns {Promise<string>}
  */
 async function polish(fallbackText, userIntent = 'report') {
-  if (!config.openAiApiKey) return fallbackText;
+  if (!config.openAiApiKey) {return fallbackText;}
 
   try {
     const res = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -43,12 +43,12 @@ async function polish(fallbackText, userIntent = 'report') {
       })
     });
 
-    if (!res.ok) throw new Error(`OpenAI HTTP ${res.status}`);
+    if (!res.ok) {throw new Error(`OpenAI HTTP ${res.status}`);}
     const data = await res.json();
     const text = data?.choices?.[0]?.message?.content?.trim();
     return text && text.length > 0 ? text : fallbackText;
   } catch (err) {
-    // eslint-disable-next-line no-console
+     
     console.warn('[llm] polish failed, using fallback:', err.message);
     return fallbackText;
   }

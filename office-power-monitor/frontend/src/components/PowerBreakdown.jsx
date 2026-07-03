@@ -8,7 +8,7 @@ import { formatWatts } from '../lib/format.js';
  * @param {{usage: any, rooms: any[]}} props
  */
 export default function PowerBreakdown({ usage, rooms }) {
-  if (!usage) return null;
+  if (!usage) {return null;}
 
   const total = usage.currentPowerWatts || 0;
   const rows = rooms.map((r) => ({

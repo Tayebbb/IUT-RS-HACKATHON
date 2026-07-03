@@ -47,7 +47,7 @@ export default function IncidentPanel({ incidents, alerts }) {
                     <span className="text-[10px] uppercase tracking-wider">{inc.severity}</span>
                   </div>
                   <div className="mt-1 text-[11px] text-slate-300/80">
-                    {inc.alertIds.length} alert{inc.alertIds.length === 1 ? '' : 's'} · opened{' '}
+                    {inc.relatedAlerts.length} alert{inc.relatedAlerts.length === 1 ? '' : 's'} · opened{' '}
                     {formatRelative(inc.createdAt)}
                   </div>
                 </motion.li>

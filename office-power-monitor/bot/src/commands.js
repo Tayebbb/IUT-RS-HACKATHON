@@ -50,7 +50,7 @@ const commands = [
       const match = roomsRes.rooms.find(
         (r) => r.id.toLowerCase() === query || r.name.toLowerCase() === query
       );
-      if (!match) return `Room \`${query}\` not found.`;
+      if (!match) {return `Room \`${query}\` not found.`;}
       const fallback = formatters.formatRoom(match);
       return polish(fallback, `room detail for ${match.name}`);
     }
