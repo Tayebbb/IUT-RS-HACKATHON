@@ -13,11 +13,17 @@ const { buildUsageSnapshot } = require('../services/usageService');
  *   - sends a full snapshot to every newly connected socket
  *
  * Emitted events (spec):
- *   devices:update   (Device[])
- *   rooms:update     (RoomSummary[])
- *   usage:update     (UsageSnapshot)
- *   alerts:update    (Alert[])
- *   incidents:update (Incident[])
+ *
+ * @fires SocketBroadcaster#devices:update
+ * @fires SocketBroadcaster#rooms:update
+ * @fires SocketBroadcaster#usage:update
+ * @fires SocketBroadcaster#alerts:update
+ * @fires SocketBroadcaster#incidents:update
+ *
+ * Client Connection Lifecycle:
+ * - On connection, the client immediately receives a full snapshot of all 5 event types.
+ * - Disconnects are gracefully handled and logged.
+ * - Reconnection is natively supported by Socket.IO.
  */
 class SocketBroadcaster {
   /**

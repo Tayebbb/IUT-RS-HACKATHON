@@ -8,6 +8,18 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
  * that subscribes to all monitor streams and returns a consolidated
  * snapshot. The socket sends full snapshots on connect (backend
  * SocketBroadcaster), so we never need to poll.
+ * 
+ * Connection Features:
+ * - Reconnect Support: Natively enabled via `reconnection: true`.
+ * - Connection Status: Automatically tracked in `state.connected`.
+ * - Graceful Disconnect: Handled automatically on component unmount via `socket.close()`.
+ *
+ * Listened Events:
+ * - `devices:update`: Array of all raw device objects.
+ * - `rooms:update`: Array of aggregated room summaries.
+ * - `usage:update`: Live power metrics and energy estimates.
+ * - `alerts:update`: Array of active/resolved system alerts.
+ * - `incidents:update`: Array of aggregated incidents.
  */
 export function useLiveData() {
   const [state, setState] = useState({

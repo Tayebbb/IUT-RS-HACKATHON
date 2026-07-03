@@ -75,4 +75,24 @@ function buildUsageSnapshot(deviceStore, energyStore) {
   };
 }
 
-module.exports = { buildUsageSnapshot, roomService };
+/**
+ * Service class encapsulating Usage pure functions for the REST layer.
+ */
+class UsageService {
+  /**
+   * @param {Object} deps
+   * @param {DeviceStore} deps.deviceStore
+   * @param {EnergyStore} deps.energyStore
+   */
+  constructor({ deviceStore, energyStore }) {
+    if (!deviceStore || !energyStore) throw new Error('UsageService requires deviceStore and energyStore');
+    this._deviceStore = deviceStore;
+    this._energyStore = energyStore;
+  }
+
+  getSnapshot() {
+    return buildUsageSnapshot(this._deviceStore, this._energyStore);
+  }
+}
+
+module.exports = { buildUsageSnapshot, UsageService, roomService };

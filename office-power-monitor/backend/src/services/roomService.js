@@ -52,4 +52,26 @@ function getRoomSummary(store, roomId) {
   return summarizeRooms(store).find((r) => r.id === roomId);
 }
 
-module.exports = { summarizeRooms, getRoomSummary };
+/**
+ * Service class encapsulating Room pure functions for the REST layer.
+ */
+class RoomService {
+  /**
+   * @param {Object} deps
+   * @param {DeviceStore} deps.deviceStore
+   */
+  constructor({ deviceStore }) {
+    if (!deviceStore) throw new Error('RoomService requires deviceStore');
+    this._store = deviceStore;
+  }
+
+  summarizeRooms() {
+    return summarizeRooms(this._store);
+  }
+
+  getRoomSummary(roomId) {
+    return getRoomSummary(this._store, roomId);
+  }
+}
+
+module.exports = { summarizeRooms, getRoomSummary, RoomService };

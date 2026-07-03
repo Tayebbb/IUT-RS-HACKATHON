@@ -13,6 +13,13 @@ const { IncidentAggregator } = require('./incidents');
 const { Simulator } = require('./simulator');
 const { registerRoutes } = require('./routes');
 const { SocketBroadcaster } = require('./sockets');
+const {
+  DeviceService,
+  RoomService,
+  UsageService,
+  AlertService,
+  IncidentService
+} = require('./services');
 
 /**
  * Compose the whole backend: stores → engines → routes → sockets → simulator.
@@ -37,11 +44,18 @@ function bootstrap() {
   });
   const simulator = new Simulator({ deviceStore });
 
+  const deviceService = new DeviceService({ deviceStore });
+  const roomService = new RoomService({ deviceStore });
+  const usageService = new UsageService({ deviceStore, energyStore });
+  const alertService = new AlertService({ alertStore });
+  const incidentService = new IncidentService({ incidentAggregator });
+
   registerRoutes(app, {
-    deviceStore,
-    energyStore,
-    alertStore,
-    incidentAggregator
+    deviceService,
+    roomService,
+    usageService,
+    alertService,
+    incidentService
   });
 
   incidentAggregator.start();

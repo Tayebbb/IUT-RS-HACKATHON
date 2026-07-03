@@ -14,25 +14,38 @@ const config = require('./config');
 async function get(path) {
   const url = `${config.backendHttpUrl}${path}`;
   const res = await fetch(url, { headers: { Accept: 'application/json' } });
+  
   if (!res.ok) {
     throw new Error(`Backend ${path} failed: ${res.status} ${res.statusText}`);
   }
-  return res.json();
+  
+  const body = await res.json();
+  if (body && body.success === false) {
+    throw new Error(`Backend API Error: ${body.error?.message}`);
+  }
+  
+  // Unwrap the standardized API response structure
+  return body.data;
 }
 
 const apiClient = {
   /** @returns {Promise<{devices: any[]}>} */
-  getDevices: () => get('/api/devices'),
+  getDevices: async () => ({ devices: await get('/api/devices') }),
+  
   /** @returns {Promise<{rooms: any[]}>} */
-  getRooms: () => get('/api/rooms'),
+  getRooms: async () => ({ rooms: await get('/api/rooms') }),
+  
   /** @param {string} id */
-  getRoom: (id) => get(`/api/rooms/${encodeURIComponent(id)}`),
+  getRoom: async (id) => ({ room: await get(`/api/rooms/${encodeURIComponent(id)}`) }),
+  
   /** @returns {Promise<{usage: any}>} */
-  getUsage: () => get('/api/usage'),
+  getUsage: async () => ({ usage: await get('/api/usage') }),
+  
   /** @returns {Promise<{alerts: any[]}>} */
-  getAlerts: () => get('/api/alerts?status=active'),
+  getAlerts: async () => ({ alerts: await get('/api/alerts?status=active') }),
+  
   /** @returns {Promise<{incidents: any[]}>} */
-  getIncidents: () => get('/api/incidents?status=active')
+  getIncidents: async () => ({ incidents: await get('/api/incidents?status=active') })
 };
 
 module.exports = apiClient;
