@@ -1,7 +1,7 @@
 'use strict';
 
 const { Router } = require('express');
-const { apiResponse } = require('../utils/apiResponse');
+const { success } = require('../utils/apiResponse');
 
 /**
  * @param {Object} deps
@@ -29,7 +29,7 @@ function createDemoRouter({ demoService }) {
   router.post('/:scenario', (req, res, next) => {
     try {
       const result = demoService.triggerScenario(req.params.scenario);
-      res.json(apiResponse(result));
+      success(res, result);
     } catch (err) {
       if (err.message.startsWith('Unknown scenario')) {
         res.status(400);

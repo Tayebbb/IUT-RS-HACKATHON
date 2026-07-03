@@ -7,25 +7,17 @@ const { createAlertsRouter } = require('./alertsRouter');
 const { createIncidentsRouter } = require('./incidentsRouter');
 const { createDemoRouter } = require('./demoRouter');
 
-const requestLogger = require('../middleware/requestLogger');
-const errorHandler = require('../middleware/errorHandler');
-
 /**
  * Mount all feature routers under /api on the given app.
  *
  * @param {import('express').Express} app
  * @param {Object} deps
- * @param {import('../services/DeviceService').DeviceService} deps.deviceService
- * @param {import('../services/roomService').RoomService} deps.roomService
- * @param {import('../services/usageService').UsageService} deps.usageService
- * @param {import('../services/AlertService').AlertService} deps.alertService
- * @param {import('../services/IncidentService').IncidentService} deps.incidentService
+ * @param {import('../store/deviceStore').DeviceStore} deps.deviceStore
+ * @param {import('../store/energyStore').EnergyStore} deps.energyStore
+ * @param {import('../alerts/alertStore').AlertStore} deps.alertStore
+ * @param {import('../incidents/incidentAggregator').IncidentAggregator} deps.incidentAggregator
  */
 function registerRoutes(app, deps) {
-  // Global API Middleware
-  app.use('/api', requestLogger);
-
-  // Mount domain routers
   app.use('/api/devices', createDevicesRouter(deps));
   app.use('/api/rooms', createRoomsRouter(deps));
   app.use('/api/usage', createUsageRouter(deps));
@@ -33,13 +25,14 @@ function registerRoutes(app, deps) {
   app.use('/api/incidents', createIncidentsRouter(deps));
   app.use('/api/demo', createDemoRouter(deps));
 
-  // 404 for unknown /api routes
-  app.use('/api', (_req, res) => {
-    res.status(404).json({ success: false, error: { message: 'Route not found', code: 'not_found' } });
-  });
+  // 404 for unknown /api routes.
+  app.use('/api', (_req, res) => res.status(404).json({ error: 'not_found' }));
 
-  // Global Error Handler
-  app.use(errorHandler);
+  // JSON error handler.
+  app.use((err, _req, res, _next) => {
+    console.error('[api-error]', err);
+    res.status(500).json({ error: 'internal_error' });
+  });
 }
 
 module.exports = { registerRoutes };

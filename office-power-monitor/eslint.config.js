@@ -103,6 +103,17 @@ export default [
       ...sharedRules,
       'no-console': ['warn', { allow: ['warn', 'error'] }],
 
+      // Override: JSX component names (PascalCase), framer-motion primitives
+      // (motion, AnimatePresence), and React itself are "used" via JSX syntax
+      // which the base rule cannot detect without a JSX-aware parser plugin.
+      'no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^(_|[A-Z]|motion$|AnimatePresence$|React$)'
+        }
+      ],
+
       // React
       'react/react-in-jsx-scope': 'off', // React 17+ JSX transform
       'react/prop-types': 'off', // project uses JSDoc, not PropTypes

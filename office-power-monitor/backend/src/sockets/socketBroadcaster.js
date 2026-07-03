@@ -13,17 +13,11 @@ const { buildUsageSnapshot } = require('../services/usageService');
  *   - sends a full snapshot to every newly connected socket
  *
  * Emitted events (spec):
- *
- * @fires SocketBroadcaster#devices:update
- * @fires SocketBroadcaster#rooms:update
- * @fires SocketBroadcaster#usage:update
- * @fires SocketBroadcaster#alerts:update
- * @fires SocketBroadcaster#incidents:update
- *
- * Client Connection Lifecycle:
- * - On connection, the client immediately receives a full snapshot of all 5 event types.
- * - Disconnects are gracefully handled and logged.
- * - Reconnection is natively supported by Socket.IO.
+ *   devices:update   (Device[])
+ *   rooms:update     (RoomSummary[])
+ *   usage:update     (UsageSnapshot)
+ *   alerts:update    (Alert[])
+ *   incidents:update (Incident[])
  */
 class SocketBroadcaster {
   /**
@@ -73,7 +67,9 @@ class SocketBroadcaster {
       this._recordEnergySample();
       this._emitUsage();
     }, this._heartbeatMs);
-    if (typeof this._heartbeat.unref === 'function') {this._heartbeat.unref();}
+    if (typeof this._heartbeat.unref === 'function') {
+      this._heartbeat.unref();
+    }
 
     this._io.on('connection', (socket) => {
       logger.info('Socket connected', { id: socket.id });
@@ -92,7 +88,9 @@ class SocketBroadcaster {
   }
 
   stop() {
-    if (this._heartbeat) {clearInterval(this._heartbeat);}
+    if (this._heartbeat) {
+      clearInterval(this._heartbeat);
+    }
     this._heartbeat = null;
   }
 

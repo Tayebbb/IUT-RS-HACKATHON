@@ -1,4 +1,4 @@
-﻿'use strict';
+'use strict';
 
 const { EventEmitter } = require('events');
 const { buildDeviceCatalog, ROOMS } = require('../config/devices');
@@ -25,7 +25,7 @@ const { buildDeviceCatalog, ROOMS } = require('../config/devices');
  */
 
 /**
- * DeviceStore - single, in-memory source of truth for all 15 office devices.
+ * DeviceStore — single, in-memory source of truth for all 15 office devices.
  *
  * ## Devices
  * Three rooms (Drawing Room, Work Room 1, Work Room 2), each containing:
@@ -38,23 +38,27 @@ const { buildDeviceCatalog, ROOMS } = require('../config/devices');
  * Total: 15 devices, max combined draw = 495 W.
  *
  * ## Events emitted
- * - 'device:changed'   (change: DeviceChange)  - one device flipped status.
- * - 'devices:changed'  (devices: Device[])     - after any batch mutation.
+ * - `'device:changed'`   (change: DeviceChange)  — one device flipped status.
+ * - `'devices:changed'`  (devices: Device[])     — after any batch mutation.
  *
- * ## Spec-required public API
- * - getAllDevices()
- * - getDeviceById(id)
- * - getDevicesByRoom(roomId)
- * - updateDevice(id, status)
- * - updateMultipleDevices(updates)
- * - resetStore()
+ * ## Public API (spec-required names)
+ * - {@link DeviceStore#getAllDevices}
+ * - {@link DeviceStore#getDeviceById}
+ * - {@link DeviceStore#getDevicesByRoom}
+ * - {@link DeviceStore#updateDevice}
+ * - {@link DeviceStore#updateMultipleDevices}
+ * - {@link DeviceStore#resetStore}
  *
- * ## Backward-compat aliases (keep existing consumers working)
- * - getAll()          -> getAllDevices()
- * - getById(id)       -> getDeviceById(id)
- * - getByRoom(roomId) -> getDevicesByRoom(roomId)
- * - setStatus(id, s)  -> updateDevice(id, s)
- * - applyBatch(upd)   -> updateMultipleDevices(upd)
+ * ## Internal aliases (kept for backward-compat with existing consumers)
+ * - `getAll()`          → getAllDevices()
+ * - `getById(id)`       → getDeviceById(id)
+ * - `getByRoom(roomId)` → getDevicesByRoom(roomId)
+ * - `setStatus(id, s)`  → updateDevice(id, s)
+ * - `applyBatch(upd)`   → updateMultipleDevices(upd)
+ *
+ * The store owns no side effects beyond state + events.  Callers
+ * (Simulator, AlertEngine, SocketBroadcaster, REST routes, Discord bot)
+ * all subscribe to react to changes rather than polling.
  */
 class DeviceStore extends EventEmitter {
   constructor() {
@@ -64,12 +68,10 @@ class DeviceStore extends EventEmitter {
     this._initialize();
   }
 
-  // -------------------------------------------------------------------------
-  // Private helpers
-  // -------------------------------------------------------------------------
+  // ─── Private helpers ──────────────────────────────────────────────────────
 
   /**
-   * Seed (or re-seed) the store from the static device catalog.
+   * Seed (or re-seed) the store with the static device catalog.
    * All devices start in the "off" state.
    * @private
    */
@@ -91,13 +93,13 @@ class DeviceStore extends EventEmitter {
     }
   }
 
-  // -------------------------------------------------------------------------
-  // Spec-required public API
-  // -------------------------------------------------------------------------
+  // ─── Spec-required public API ─────────────────────────────────────────────
 
   /**
    * Return a defensive copy of every device in the store.
-   * Mutations to the returned array or its objects never affect stored state.
+   *
+   * Consumers receive a plain array snapshot; mutations to it never affect
+   * the stored state.
    *
    * @returns {Device[]}
    */
@@ -117,7 +119,7 @@ class DeviceStore extends EventEmitter {
   }
 
   /**
-   * Return all devices belonging to a given room.
+   * Return all devices that belong to a given room.
    *
    * @param {string} roomId  e.g. "work-room-1"
    * @returns {Device[]}     Empty array when the roomId is unknown.
@@ -129,14 +131,18 @@ class DeviceStore extends EventEmitter {
   /**
    * Flip a single device's status.
    *
-   * No-op when the device id is unknown or the status is already correct.
-   * On a real transition: updates `power` and `lastChanged`, then emits
-   * 'device:changed'.
+   * This is a no-op when:
+   *  - The device id is not found.
+   *  - The requested status equals the current status.
    *
-   * @param {string}       id
-   * @param {DeviceStatus} nextStatus
-   * @param {number}       [nowMs]   Clock override for testing. Default: Date.now().
-   * @returns {DeviceChange|null}   null when no transition occurred.
+   * On a successful transition the device's `power` and `lastChanged` fields
+   * are updated and a `'device:changed'` event is emitted.
+   *
+   * @param {string}       id          Device id.
+   * @param {DeviceStatus} nextStatus  Target status ("on" | "off").
+   * @param {number}       [nowMs]     Override for the current timestamp
+   *                                   (useful in tests). Defaults to Date.now().
+   * @returns {DeviceChange|null}      null when no change occurred.
    */
   updateDevice(id, nextStatus, nowMs = Date.now()) {
     const device = this._byId.get(id);
@@ -166,14 +172,16 @@ class DeviceStore extends EventEmitter {
   /**
    * Apply a batch of status updates atomically.
    *
-   * All transitions are committed before any event fires, so listeners always
-   * receive a consistent snapshot. A single 'devices:changed' event fires
-   * after the batch when at least one device actually changed.
+   * All individual transitions are committed before any event is emitted,
+   * so listeners always receive a consistent snapshot.  A single
+   * `'devices:changed'` event fires after the batch (even if only one
+   * device actually changed).
    *
-   * Unknown ids and no-op transitions are silently skipped.
+   * Devices whose id is unknown or whose status is already correct are
+   * silently skipped.
    *
    * @param {Array<{id:string, status:DeviceStatus}>} updates
-   * @param {number} [nowMs]  Clock override. Default: Date.now().
+   * @param {number} [nowMs]  Timestamp override. Defaults to Date.now().
    * @returns {DeviceChange[]}  Only the transitions that actually occurred.
    */
   updateMultipleDevices(updates, nowMs = Date.now()) {
@@ -192,15 +200,16 @@ class DeviceStore extends EventEmitter {
   }
 
   /**
-   * Reset every device to the initial "off" state.
+   * Reset every device back to its initial "off" state.
    *
-   * Existing EventEmitter listeners are preserved; they receive a
-   * 'devices:changed' event with the fresh all-off snapshot.
+   * This is equivalent to reconstructing the singleton from scratch.
+   * Existing EventEmitter listeners are preserved — they will receive a
+   * `'devices:changed'` event carrying the fresh snapshot.
    *
    * Typical use cases:
-   *   - Test setup / teardown.
-   *   - Administrative "kill all devices" command (Discord bot).
-   *   - Recovery from a corrupted simulation state.
+   *  - Test setup / teardown.
+   *  - Administrative "kill all devices" command from the Discord bot.
+   *  - Recovering from a corrupted simulation state.
    */
   resetStore() {
     this._byId.clear();
@@ -208,9 +217,7 @@ class DeviceStore extends EventEmitter {
     this.emit('devices:changed', this.getAllDevices());
   }
 
-  // -------------------------------------------------------------------------
-  // Additional helpers used by existing consumers
-  // -------------------------------------------------------------------------
+  // ─── Additional helpers (not part of spec, used by existing consumers) ────
 
   /**
    * Return the list of office rooms (id + name).
@@ -221,12 +228,12 @@ class DeviceStore extends EventEmitter {
   }
 
   /**
-   * Seconds elapsed since the device last changed status.
+   * Compute how many seconds have elapsed since the device last changed status.
    * Used by the Simulator to enforce the minimum dwell time.
    *
    * @param {string} id
    * @param {number} [nowMs]
-   * @returns {number}  0 when the device id is unknown.
+   * @returns {number}  0 when the device is unknown.
    */
   getDwellSeconds(id, nowMs = Date.now()) {
     const device = this._byId.get(id);
@@ -236,12 +243,10 @@ class DeviceStore extends EventEmitter {
     return Math.max(0, Math.floor((nowMs - Date.parse(device.lastChanged)) / 1000));
   }
 
-  // -------------------------------------------------------------------------
-  // Backward-compat aliases
+  // ─── Backward-compat aliases ──────────────────────────────────────────────
   // Existing consumers (routes, services, simulator, broadcaster) use these
-  // shorter names. Each delegates to the spec-required method above so there
-  // is exactly one implementation per operation.
-  // -------------------------------------------------------------------------
+  // shorter names. They delegate to the spec-required methods above so there
+  // is exactly one implementation of each operation.
 
   /** @see DeviceStore#getAllDevices */
   getAll() {
@@ -259,7 +264,8 @@ class DeviceStore extends EventEmitter {
   }
 
   /**
-   * Alias for updateDevice. Kept for Simulator backward-compat.
+   * Alias for {@link DeviceStore#updateDevice}.
+   * Kept for backward-compat with the Simulator and any internal callers.
    * @see DeviceStore#updateDevice
    */
   setStatus(id, nextStatus, nowMs = Date.now()) {
@@ -267,7 +273,8 @@ class DeviceStore extends EventEmitter {
   }
 
   /**
-   * Alias for updateMultipleDevices. Kept for Simulator backward-compat.
+   * Alias for {@link DeviceStore#updateMultipleDevices}.
+   * Kept for backward-compat with the Simulator.
    * @see DeviceStore#updateMultipleDevices
    */
   applyBatch(updates, nowMs = Date.now()) {
@@ -275,11 +282,16 @@ class DeviceStore extends EventEmitter {
   }
 }
 
-// -----------------------------------------------------------------------------
-// Singleton
-// Shared instance imported by: Simulator, AlertEngine, SocketBroadcaster,
-// REST route handlers, and the Discord bot.
-// -----------------------------------------------------------------------------
+// ─── Singleton ───────────────────────────────────────────────────────────────
+
+/**
+ * Shared singleton instance.  Imported by:
+ *  - Simulator            → drives state transitions
+ *  - AlertEngine          → reads device state to evaluate rules
+ *  - SocketBroadcaster    → pushes snapshots to connected clients
+ *  - REST route handlers  → serves HTTP responses
+ *  - Discord bot          → reads state for !status / !room commands
+ */
 const deviceStore = new DeviceStore();
 
 module.exports = { DeviceStore, deviceStore };

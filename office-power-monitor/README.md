@@ -139,40 +139,46 @@ office-power-monitor/
 
 ---
 
-## 🚀 Setup & Installation
+## 🚀 Setup & Installation (Docker)
 
-Ensure you have **Node.js 18+** installed. The project is split into three independent services.
+The fastest and most reliable way to run the entire Office Power Monitor stack (Backend, Frontend, and Bot) is using **Docker Compose**.
 
-### 1. Running the Backend (Core Engine)
-The backend hosts the REST API, the Simulator, and the WebSocket broadcaster.
+### Prerequisites
+- [Docker](https://docs.docker.com/get-docker/) installed and running.
+- [Docker Compose](https://docs.docker.com/compose/install/)
+
+### 1. Configuration
+First, copy the global environment template:
 ```bash
-cd backend
 cp .env.example .env
-npm install
-npm start
 ```
-> **Backend runs on:** `http://localhost:4000`
+Open the new `.env` file and fill in your `DISCORD_TOKEN`, `ALERT_CHANNEL_IDS`, and `OPENAI_API_KEY` (if using).
 
-### 2. Running the Frontend (Dashboard)
-The React dashboard consumes the live Socket.IO stream.
+### 2. Build and Run
+Start the entire stack in detached mode:
 ```bash
-cd frontend
-cp .env.example .env
-npm install
-npm run dev
+docker compose up --build -d
 ```
-> **Frontend runs on:** `http://localhost:5173`
+That's it! The services will automatically wire themselves together over a private Docker network.
 
-### 3. Running the Discord Bot (Optional)
-The bot provides Chat-Ops and realtime Discord alerts.
-```bash
-cd bot
-cp .env.example .env
-# Important: Open .env and add your DISCORD_TOKEN
-npm install
-npm start
-```
-> **Note:** To enable OpenAI polishing and auto-relays, ensure `OPENAI_API_KEY` and `ALERT_CHANNEL_IDS` are populated in the `.env`.
+- **Frontend Dashboard:** `http://localhost:5173`
+- **Backend API:** `http://localhost:4000`
+- **Discord Bot:** Runs silently in the background.
+
+### 3. Useful Docker Commands
+- **View Live Logs:** `docker compose logs -f`
+- **Stop the Stack:** `docker compose down`
+- **Rebuild after code changes:** `docker compose up --build -d`
+
+---
+
+## 🚀 Setup & Installation (Manual Node.js)
+
+If you prefer to run the services individually without Docker, you can start them manually. Ensure you have **Node.js 20+** installed.
+
+1. **Backend:** `cd backend && npm install && npm start` (Port 4000)
+2. **Frontend:** `cd frontend && npm install && npm run dev` (Port 5173)
+3. **Bot:** `cd bot && npm install && npm start`
 
 ---
 

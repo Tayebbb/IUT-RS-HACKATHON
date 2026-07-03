@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: office_monitor_backend
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - SIMULATOR_TICK_MS=${SIMULATOR_TICK_MS:-5000}
+      - SIMULATOR_OFFICE_HOUR_START=${SIMULATOR_OFFICE_HOUR_START:-9}
+      - SIMULATOR_OFFICE_HOUR_END=${SIMULATOR_OFFICE_HOUR_END:-17}
+    networks:
+      - monitor_net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # These are injected at build-time so the static JS bundle knows where the backend is.
+        # It defaults to localhost:4000 because the browser runs on the host machine.
+        VITE_BACKEND_URL: ${VITE_BACKEND_URL:-http://localhost:4000}
+        VITE_SOCKET_URL: ${VITE_SOCKET_URL:-http://localhost:4000}
+    container_name: office_monitor_frontend
+    restart: unless-stopped
+    ports:
+      - "5173:8080"
+    networks:
+      - monitor_net
+    depends_on:
+      - backend
+
+  bot:
+    build:
+      context: ./bot
+      dockerfile: Dockerfile
+    container_name: office_monitor_bot
+    restart: unless-stopped
+    environment:
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+      - COMMAND_PREFIX=${COMMAND_PREFIX:-!}
+      - ALERT_CHANNEL_IDS=${ALERT_CHANNEL_IDS}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-https://api.openai.com/v1}
+      # Internally addressable backend within the Docker network
+      - BACKEND_HTTP_URL=http://backend:4000
+      - BACKEND_WS_URL=http://backend:4000
+    networks:
+      - monitor_net
+    depends_on:
+      - backend
+
+networks:
+  monitor_net:
+    driver: bridge
+    name: monitor_network

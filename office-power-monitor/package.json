@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Real-time office electricity monitoring system — monorepo root.",
   "private": true,
+  "type": "module",
   "workspaces": [
     "backend",
     "frontend",

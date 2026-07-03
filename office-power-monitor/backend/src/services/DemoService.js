@@ -27,7 +27,7 @@ class DemoService {
       case 'everything-off':
         for (const d of all) {
           if (d.status !== 'off') {
-            this._devices.updateDeviceStatus(d.id, 'off', nowMs);
+            this._devices.updateDevice(d.id, 'off', nowMs);
           }
         }
         return { message: 'All devices turned OFF' };
@@ -36,7 +36,7 @@ class DemoService {
       case 'office-hours':
         for (const d of all) {
           if (d.status !== 'on') {
-            this._devices.updateDeviceStatus(d.id, 'on', nowMs);
+            this._devices.updateDevice(d.id, 'on', nowMs);
           }
         }
         return { message: 'All devices turned ON (High Power / Office Hours)' };
@@ -48,7 +48,7 @@ class DemoService {
         for (const d of all) {
           const target = d.roomId === 'drawing_room' ? 'on' : 'off';
           if (d.status !== target) {
-            this._devices.updateDeviceStatus(d.id, target, nowMs);
+            this._devices.updateDevice(d.id, target, nowMs);
           }
         }
         return { message: 'Drawing room devices turned ON (Alert Scenario)' };

@@ -43,11 +43,15 @@ class AlertEngine {
 
   /** Start periodic evaluation + subscribe to device change events. */
   start() {
-    if (this._timer) {return;}
+    if (this._timer) {
+      return;
+    }
     this._devices.on('devices:changed', this._boundOnDevicesChanged);
     this._devices.on('device:changed', this._boundOnDevicesChanged);
     this._timer = setInterval(() => this.evaluate(), this._evaluateEveryMs);
-    if (typeof this._timer.unref === 'function') {this._timer.unref();}
+    if (typeof this._timer.unref === 'function') {
+      this._timer.unref();
+    }
     logger.info('AlertEngine started', {
       evaluateEveryMs: this._evaluateEveryMs
     });
@@ -55,7 +59,9 @@ class AlertEngine {
   }
 
   stop() {
-    if (this._timer) {clearInterval(this._timer);}
+    if (this._timer) {
+      clearInterval(this._timer);
+    }
     this._timer = null;
     this._devices.off('devices:changed', this._boundOnDevicesChanged);
     this._devices.off('device:changed', this._boundOnDevicesChanged);
@@ -103,12 +109,13 @@ class AlertEngine {
               `(threshold ${config.roomOnMaxHours}h).`,
             nowMs
           });
-          if (opened) {mutated = true;}
+          if (opened) {
+            mutated = true;
+          }
         }
       }
 
       if (!office) {
-        let roomAlertFired = false;
         // Rule 2: entire room ON after office hours.
         if (room.allOn) {
           const sig = `room-on-after-hours:${room.id}`;
@@ -122,26 +129,29 @@ class AlertEngine {
             message: `${room.name} is fully ON outside office hours (${room.powerWatts}W).`,
             nowMs
           });
-          if (opened) {mutated = true;}
-          roomAlertFired = true;
+          if (opened) {
+            mutated = true;
+          }
         }
 
         // Rule 1: any device ON after office hours.
-        if (!roomAlertFired) {
-          for (const d of room.devices) {
-            if (d.status !== 'on') {continue;}
-            const sig = `device-on-after-hours:${d.id}`;
-            keep.add(sig);
-            const { opened } = this._alerts.upsert({
-              signature: sig,
-              kind: 'device_on_after_hours',
-              severity: 'medium',
-              room: room.id,
-              device: d.id,
-              message: `${d.label} in ${room.name} is ON outside office hours.`,
-              nowMs
-            });
-            if (opened) {mutated = true;}
+        for (const d of room.devices) {
+          if (d.status !== 'on') {
+            continue;
+          }
+          const sig = `device-on-after-hours:${d.id}`;
+          keep.add(sig);
+          const { opened } = this._alerts.upsert({
+            signature: sig,
+            kind: 'device_on_after_hours',
+            severity: 'medium',
+            room: room.id,
+            device: d.id,
+            message: `${d.label} in ${room.name} is ON outside office hours.`,
+            nowMs
+          });
+          if (opened) {
+            mutated = true;
           }
         }
       }

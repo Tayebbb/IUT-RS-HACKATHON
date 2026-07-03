@@ -11,6 +11,7 @@ require('dotenv').config();
  * @property {string} backendWsUrl
  * @property {string|null} openAiApiKey
  * @property {string} openAiModel
+ * @property {string} openAiBaseUrl
  */
 
 /** @type {BotConfig} */
@@ -24,7 +25,8 @@ const config = {
   backendHttpUrl: process.env.BACKEND_HTTP_URL || 'http://localhost:4000',
   backendWsUrl: process.env.BACKEND_WS_URL || 'http://localhost:4000',
   openAiApiKey: process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY : null,
-  openAiModel: process.env.OPENAI_MODEL || 'gpt-4o-mini'
+  openAiModel: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+  openAiBaseUrl: process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1'
 };
 
 module.exports = config;

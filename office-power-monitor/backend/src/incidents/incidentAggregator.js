@@ -12,7 +12,7 @@ const logger = require('../utils/logger');
  * @property {string|null} room
  * @property {'active'|'resolved'} status
  * @property {'low'|'medium'|'high'} severity   Highest severity of member alerts.
- * @property {string[]} relatedAlerts
+ * @property {string[]} alertIds
  * @property {string} title
  * @property {string} createdAt   ISO
  * @property {string} updatedAt   ISO
@@ -56,7 +56,9 @@ class IncidentAggregator extends EventEmitter {
    */
   constructor({ alertStore, now }) {
     super();
-    if (!alertStore) {throw new Error('IncidentAggregator requires alertStore');}
+    if (!alertStore) {
+      throw new Error('IncidentAggregator requires alertStore');
+    }
     this._alerts = alertStore;
     this._now = now || Date.now;
     /** @type {Map<string, Incident>} roomKey → active incident */
@@ -92,7 +94,7 @@ class IncidentAggregator extends EventEmitter {
   /** @returns {Incident[]} newest first. */
   getAll() {
     return Array.from(this._byId.values())
-      .map((i) => ({ ...i, relatedAlerts: [...i.relatedAlerts] }))
+      .map((i) => ({ ...i, alertIds: [...i.alertIds] }))
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }
 
@@ -100,7 +102,7 @@ class IncidentAggregator extends EventEmitter {
   getActive() {
     return Array.from(this._activeByRoom.values()).map((i) => ({
       ...i,
-      relatedAlerts: [...i.relatedAlerts]
+      alertIds: [...i.alertIds]
     }));
   }
 
@@ -117,7 +119,9 @@ class IncidentAggregator extends EventEmitter {
     const grouped = new Map();
     for (const a of active) {
       const key = a.room || '__global__';
-      if (!grouped.has(key)) {grouped.set(key, []);}
+      if (!grouped.has(key)) {
+        grouped.set(key, []);
+      }
       grouped.get(key).push(a);
     }
 
@@ -129,7 +133,7 @@ class IncidentAggregator extends EventEmitter {
         (acc, a) => maxSeverity(acc, a.severity),
         /** @type {'low'|'medium'|'high'} */ ('low')
       );
-      const relatedAlerts = alerts.map((a) => a.id).sort();
+      const alertIds = alerts.map((a) => a.id).sort();
       const title = this._buildTitle(roomKey, alerts);
 
       const existing = this._activeByRoom.get(roomKey);
@@ -140,7 +144,7 @@ class IncidentAggregator extends EventEmitter {
           room: roomKey === '__global__' ? null : roomKey,
           status: 'active',
           severity,
-          relatedAlerts,
+          alertIds,
           title,
           createdAt: iso,
           updatedAt: iso,
@@ -148,14 +152,7 @@ class IncidentAggregator extends EventEmitter {
         };
         this._activeByRoom.set(roomKey, incident);
         this._byId.set(incident.id, incident);
-        
-        // Garbage collection for memory safety
-        if (this._byId.size > 500) {
-          const oldestKey = this._byId.keys().next().value;
-          this._byId.delete(oldestKey);
-        }
-
-        this.emit('incident:opened', { ...incident, relatedAlerts: [...relatedAlerts] });
+        this.emit('incident:opened', { ...incident, alertIds: [...alertIds] });
         changed = true;
       } else {
         let mutated = false;
@@ -167,13 +164,13 @@ class IncidentAggregator extends EventEmitter {
           existing.title = title;
           mutated = true;
         }
-        if (existing.relatedAlerts.join(',') !== relatedAlerts.join(',')) {
-          existing.relatedAlerts = relatedAlerts;
+        if (existing.alertIds.join(',') !== alertIds.join(',')) {
+          existing.alertIds = alertIds;
           mutated = true;
         }
         if (mutated) {
           existing.updatedAt = iso;
-          this.emit('incident:updated', { ...existing, relatedAlerts: [...relatedAlerts] });
+          this.emit('incident:updated', { ...existing, alertIds: [...alertIds] });
           changed = true;
         }
       }
@@ -186,12 +183,14 @@ class IncidentAggregator extends EventEmitter {
         incident.resolvedAt = iso;
         incident.updatedAt = iso;
         this._activeByRoom.delete(roomKey);
-        this.emit('incident:resolved', { ...incident, relatedAlerts: [...incident.relatedAlerts] });
+        this.emit('incident:resolved', { ...incident, alertIds: [...incident.alertIds] });
         changed = true;
       }
     }
 
-    if (changed) {this.emit('incidents:changed', this.getAll());}
+    if (changed) {
+      this.emit('incidents:changed', this.getAll());
+    }
   }
 
   /**

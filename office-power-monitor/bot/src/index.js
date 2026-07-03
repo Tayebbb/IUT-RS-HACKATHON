@@ -1,12 +1,11 @@
 'use strict';
 
-const { Client, GatewayIntentBits, Partials, EmbedBuilder } = require('discord.js');
+const { Client, GatewayIntentBits, Partials } = require('discord.js');
 const config = require('./config');
 const { findCommand } = require('./commands');
 const { startAlertRelay } = require('./alertRelay');
 
 if (!config.discordToken) {
-   
   console.error('DISCORD_TOKEN missing. Copy .env.example to .env and fill it in.');
   process.exit(1);
 }
@@ -22,17 +21,22 @@ const client = new Client({
 });
 
 client.on('ready', () => {
-   
   console.log(`[discord] Logged in as ${client.user.tag}`);
 });
 
 client.on('messageCreate', async (message) => {
   try {
-    if (message.author.bot) {return;}
-    if (!message.content.startsWith(config.commandPrefix)) {return;}
+    if (message.author.bot) {
+      return;
+    }
+    if (!message.content.startsWith(config.commandPrefix)) {
+      return;
+    }
 
     const raw = message.content.slice(config.commandPrefix.length).trim();
-    if (raw.length === 0) {return;}
+    if (raw.length === 0) {
+      return;
+    }
 
     const [name, ...args] = raw.split(/\s+/);
     const command = findCommand(name);
@@ -47,19 +51,13 @@ client.on('messageCreate', async (message) => {
     }
 
     const reply = await command.run({ args });
-    const embed = new EmbedBuilder()
-      .setColor('#38bdf8')
-      .setDescription(reply.length > 4000 ? reply.slice(0, 4000) + '…' : reply)
-      .setFooter({ text: 'Office Power Monitor' })
-      .setTimestamp();
-    await message.reply({ embeds: [embed] });
+    await message.reply(reply.length > 1900 ? reply.slice(0, 1900) + '\n…' : reply);
   } catch (err) {
-     
     console.error('[command-error]', err);
     try {
       await message.reply(`Command failed: ${err.message}`);
     } catch {
-      /* ignore */
+      /* ignore — reply itself failed, nothing more we can do */
     }
   }
 });
@@ -70,7 +68,6 @@ client.once('ready', () => {
 });
 
 const shutdown = async (signal) => {
-   
   console.log(`[bot] shutting down (${signal})`);
   relay.stop();
   await client.destroy().catch(() => {});
@@ -80,7 +77,6 @@ process.on('SIGINT', () => shutdown('SIGINT'));
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 
 client.login(config.discordToken).catch((err) => {
-   
   console.error('[discord] login failed:', err.message);
   process.exit(1);
 });
