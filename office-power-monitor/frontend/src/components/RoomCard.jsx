@@ -85,6 +85,40 @@ function DeviceChip({ device, index = 0 }) {
 }
 
 /**
+ * Simple SVG sparkline for power history
+ */
+function Sparkline({ samples }) {
+  if (!samples || samples.length < 2) return null;
+  const maxW = Math.max(...samples.map((s) => s.w), 10);
+  const minW = 0;
+  
+  const width = 72;
+  const height = 24;
+  
+  const pts = samples.map((s, i) => {
+    const x = (i / (samples.length - 1)) * width;
+    const y = height - (s.w / maxW) * height;
+    return `${x},${y}`;
+  });
+
+  const pathD = `M ${pts.join(' L ')}`;
+  const fillD = `${pathD} L ${width},${height} L 0,${height} Z`;
+
+  return (
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="overflow-visible opacity-80">
+      <defs>
+        <linearGradient id="spark-fill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="rgba(56,189,248,0.2)" />
+          <stop offset="100%" stopColor="rgba(56,189,248,0)" />
+        </linearGradient>
+      </defs>
+      <path d={fillD} fill="url(#spark-fill)" />
+      <path d={pathD} fill="none" stroke="rgba(56,189,248,0.6)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/**
  * Full room card with animated power bar, device chips, and utilisation ring.
  * @param {{room: any, delay?: number}} props
  */
@@ -121,16 +155,22 @@ export default function RoomCard({ room, delay = 0 }) {
           </p>
         </div>
 
-        {/* All-on warning badge */}
-        {isHot && (
-          <motion.span
-            className="chip border-warn/40 bg-warn/10 text-warn"
-            animate={{ opacity: [0.6, 1, 0.6] }}
-            transition={{ duration: 1.6, repeat: Infinity }}
-          >
-            ⚠ All ON
-          </motion.span>
-        )}
+        <div className="flex flex-col items-end gap-2">
+          {/* All-on warning badge */}
+          {isHot && (
+            <motion.span
+              className="chip border-warn/40 bg-warn/10 text-warn"
+              animate={{ opacity: [0.6, 1, 0.6] }}
+              transition={{ duration: 1.6, repeat: Infinity }}
+            >
+              ⚠ All ON
+            </motion.span>
+          )}
+          {/* Sparkline history */}
+          {!isHot && room.samples?.length > 1 && (
+            <Sparkline samples={room.samples} />
+          )}
+        </div>
       </div>
 
       {/* Power utilisation bar */}

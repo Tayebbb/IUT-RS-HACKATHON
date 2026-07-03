@@ -27,10 +27,11 @@ class SocketBroadcaster {
    * @param {import('../store/energyStore').EnergyStore} deps.energyStore
    * @param {import('../alerts/alertStore').AlertStore} deps.alertStore
    * @param {import('../incidents/incidentAggregator').IncidentAggregator} deps.incidentAggregator
+   * @param {import('../store/roomSampleBuffer').RoomSampleBuffer} deps.roomSampleBuffer
    * @param {number} [deps.heartbeatMs=5000]
    */
-  constructor({ io, deviceStore, energyStore, alertStore, incidentAggregator, heartbeatMs }) {
-    if (!io || !deviceStore || !energyStore || !alertStore || !incidentAggregator) {
+  constructor({ io, deviceStore, energyStore, alertStore, incidentAggregator, roomSampleBuffer, heartbeatMs }) {
+    if (!io || !deviceStore || !energyStore || !alertStore || !incidentAggregator || !roomSampleBuffer) {
       throw new Error('SocketBroadcaster missing required deps');
     }
     this._io = io;
@@ -38,6 +39,7 @@ class SocketBroadcaster {
     this._energyStore = energyStore;
     this._alertStore = alertStore;
     this._incidents = incidentAggregator;
+    this._roomSampleBuffer = roomSampleBuffer;
     this._heartbeatMs = heartbeatMs ?? 5000;
     /** @type {NodeJS.Timeout|null} */
     this._heartbeat = null;
@@ -75,7 +77,7 @@ class SocketBroadcaster {
       logger.info('Socket connected', { id: socket.id });
       // Send full initial snapshot so late joiners don't wait for events.
       socket.emit('devices:update', this._deviceStore.getAll());
-      socket.emit('rooms:update', roomService.summarizeRooms(this._deviceStore));
+      socket.emit('rooms:update', roomService.summarizeRooms(this._deviceStore, this._roomSampleBuffer));
       socket.emit('usage:update', buildUsageSnapshot(this._deviceStore, this._energyStore));
       socket.emit('alerts:update', this._alertStore.getAll());
       socket.emit('incidents:update', this._incidents.getAll());
@@ -96,14 +98,19 @@ class SocketBroadcaster {
 
   /** @private */
   _recordEnergySample() {
-    const totalW = powerService.totalPower(this._deviceStore.getAll());
+    const devices = this._deviceStore.getAll();
+    const totalW = powerService.totalPower(devices);
     this._energyStore.record(totalW);
+
+    const perRoomWatts = powerService.powerByRoom(devices);
+    const roomSnapshots = Object.entries(perRoomWatts).map(([id, powerWatts]) => ({ id, powerWatts }));
+    this._roomSampleBuffer.record(roomSnapshots);
   }
 
   /** @private */
   _emitDeviceScopedUpdates() {
     this._io.emit('devices:update', this._deviceStore.getAll());
-    this._io.emit('rooms:update', roomService.summarizeRooms(this._deviceStore));
+    this._io.emit('rooms:update', roomService.summarizeRooms(this._deviceStore, this._roomSampleBuffer));
     this._emitUsage();
   }
 

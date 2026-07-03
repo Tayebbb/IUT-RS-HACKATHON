@@ -13,7 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
  *
  * @param {{devices: any[], rooms: any[]}} props
  */
-export default function OfficeLayout({ devices = [], rooms = [] }) {
+export default function OfficeLayout({ devices = [], rooms = [], alerts = [] }) {
   const [hoverId, setHoverId] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -81,6 +81,12 @@ export default function OfficeLayout({ devices = [], rooms = [] }) {
               <stop offset="0%" stopColor="rgba(56,189,248,0.5)" />
               <stop offset="100%" stopColor="rgba(56,189,248,0)" />
             </radialGradient>
+            
+            {/* Anomaly heat pulse */}
+            <radialGradient id={`anomaly-pulse-${uid}`} cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="rgba(239,68,68,0.25)" />
+              <stop offset="100%" stopColor="rgba(239,68,68,0.05)" />
+            </radialGradient>
 
             {/* Masks to cut doors into the solid walls */}
             {roomSlots.map((slot) => (
@@ -107,17 +113,41 @@ export default function OfficeLayout({ devices = [], rooms = [] }) {
 
           {roomSlots.map((slot) => {
             const meta = roomByIdMeta.get(slot.id);
-            const isHot = !!meta?.allOn;
+            const hasAnomaly = alerts.some(a => a.room === slot.id && a.kind === 'power_anomaly');
+            
+            // Heatmap calculation
+            const utilisation = meta && meta.totalDevices > 0 ? meta.onCount / meta.totalDevices : 0;
+            // Base color: from cool blue (low load) to warm amber (high load)
+            let fillColor = 'rgba(15,23,42,0.55)'; // default vacant
+            if (utilisation > 0) {
+              if (utilisation < 0.5) fillColor = 'rgba(14,165,233,0.1)'; // cool blue
+              else if (utilisation < 1) fillColor = 'rgba(245,158,11,0.1)'; // warm amber
+              else fillColor = 'rgba(245,158,11,0.2)'; // hot amber
+            }
+
             return (
               <g key={slot.id}>
                 {/* Room walls (masked for doors) */}
                 <rect
                   x={slot.x} y={slot.y} width={slot.w} height={slot.h} rx="10"
-                  fill="rgba(15,23,42,0.55)"
-                  stroke={isHot ? 'rgba(245,158,11,0.8)' : 'rgba(148,163,184,0.4)'}
-                  strokeWidth="2.5"
+                  fill={fillColor}
+                  stroke={hasAnomaly ? 'rgba(239,68,68,0.9)' : (meta?.allOn ? 'rgba(245,158,11,0.8)' : 'rgba(148,163,184,0.4)')}
+                  strokeWidth={hasAnomaly ? "3" : "2.5"}
                   mask={`url(#door-mask-${slot.id}-${uid})`}
+                  style={{ transition: 'fill 1s ease, stroke 0.5s ease' }}
                 />
+                
+                {/* Anomaly heat pulse overlay */}
+                {hasAnomaly && (
+                  <motion.rect
+                    x={slot.x + 2} y={slot.y + 2} width={slot.w - 4} height={slot.h - 4} rx="8"
+                    fill={`url(#anomaly-pulse-${uid})`}
+                    animate={{ opacity: [0.3, 1, 0.3] }}
+                    transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+                    mask={`url(#door-mask-${slot.id}-${uid})`}
+                    pointerEvents="none"
+                  />
+                )}
 
                 {/* Door Arc */}
                 <g stroke="rgba(148,163,184,0.7)" strokeWidth="1.5" fill="none">
@@ -130,7 +160,7 @@ export default function OfficeLayout({ devices = [], rooms = [] }) {
                   {slot.label}
                 </text>
                 {meta && (
-                  <text x={slot.x + slot.w - 12} y={slot.y + 22} fill="rgba(148,163,184,0.9)" fontSize="11" textAnchor="end">
+                  <text x={slot.x + slot.w - 12} y={slot.y + 22} fill={hasAnomaly ? 'rgba(239,68,68,0.9)' : 'rgba(148,163,184,0.9)'} fontSize="11" textAnchor="end" fontWeight={hasAnomaly ? 'bold' : 'normal'}>
                     {meta.onCount}/{meta.totalDevices} ON · {Math.round(meta.powerWatts)}W
                   </text>
                 )}

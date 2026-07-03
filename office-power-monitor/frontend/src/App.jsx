@@ -33,7 +33,7 @@ export default function App() {
               ))}
             </section>
 
-            <OfficeLayout devices={devices} rooms={rooms} />
+            <OfficeLayout devices={devices} rooms={rooms} alerts={alerts} />
 
             <PowerBreakdown usage={usage} rooms={rooms} />
           </main>
