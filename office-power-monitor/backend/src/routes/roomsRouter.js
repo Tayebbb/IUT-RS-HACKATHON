@@ -17,7 +17,7 @@ function createRoomsRouter({ deviceStore }) {
 
   router.get('/:id', (req, res) => {
     const room = roomService.getRoomSummary(deviceStore, req.params.id);
-    if (!room) return res.status(404).json({ error: 'room_not_found' });
+    if (!room) {return res.status(404).json({ error: 'room_not_found' });}
     return res.json({ room });
   });
 

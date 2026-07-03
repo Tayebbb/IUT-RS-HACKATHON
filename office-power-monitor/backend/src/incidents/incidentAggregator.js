@@ -56,7 +56,7 @@ class IncidentAggregator extends EventEmitter {
    */
   constructor({ alertStore, now }) {
     super();
-    if (!alertStore) throw new Error('IncidentAggregator requires alertStore');
+    if (!alertStore) {throw new Error('IncidentAggregator requires alertStore');}
     this._alerts = alertStore;
     this._now = now || Date.now;
     /** @type {Map<string, Incident>} roomKey → active incident */
@@ -117,7 +117,7 @@ class IncidentAggregator extends EventEmitter {
     const grouped = new Map();
     for (const a of active) {
       const key = a.room || '__global__';
-      if (!grouped.has(key)) grouped.set(key, []);
+      if (!grouped.has(key)) {grouped.set(key, []);}
       grouped.get(key).push(a);
     }
 
@@ -184,7 +184,7 @@ class IncidentAggregator extends EventEmitter {
       }
     }
 
-    if (changed) this.emit('incidents:changed', this.getAll());
+    if (changed) {this.emit('incidents:changed', this.getAll());}
   }
 
   /**

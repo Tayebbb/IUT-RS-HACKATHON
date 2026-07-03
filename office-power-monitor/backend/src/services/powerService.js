@@ -15,13 +15,17 @@
  */
 function totalPower(devices) {
   let sum = 0;
-  for (const d of devices) if (d.status === 'on') sum += d.power;
+  for (const d of devices) {
+    if (d.status === 'on') {
+      sum += d.power;
+    }
+  }
   return sum;
 }
 
 /**
  * @param {Device[]} devices
- * @returns {Record<string, number>} Room id → watts.
+ * @returns {Record<string, number>} Room id -> watts.
  */
 function powerByRoom(devices) {
   /** @type {Record<string, number>} */
@@ -34,12 +38,27 @@ function powerByRoom(devices) {
 
 /**
  * @param {Device[]} devices
- * @returns {Record<'fan'|'light', number>} Type → watts.
+ * @returns {Record<'fan'|'light', number>} Type -> watts.
  */
 function powerByType(devices) {
   const out = { fan: 0, light: 0 };
   for (const d of devices) {
-    if (d.status === 'on') out[d.type] += d.power;
+    if (d.status === 'on') {
+      out[d.type] += d.power;
+    }
+  }
+  return out;
+}
+
+/**
+ * @param {Device[]} devices
+ * @returns {Record<string, number>} Device id -> watts.
+ */
+function powerByDevice(devices) {
+  /** @type {Record<string, number>} */
+  const out = {};
+  for (const d of devices) {
+    out[d.id] = (d.status === 'on' ? d.power : 0);
   }
   return out;
 }
@@ -61,9 +80,28 @@ function highestConsumingRoom(devices) {
   return { roomId, watts };
 }
 
+/**
+ * @param {Device[]} devices
+ * @returns {Device[]} Array of currently active (ON) devices.
+ */
+function activeDevices(devices) {
+  return devices.filter((d) => d.status === 'on');
+}
+
+/**
+ * @param {Device[]} devices
+ * @returns {number} Count of inactive (OFF) devices.
+ */
+function inactiveDevicesCount(devices) {
+  return devices.filter((d) => d.status === 'off').length;
+}
+
 module.exports = {
   totalPower,
   powerByRoom,
   powerByType,
-  highestConsumingRoom
+  powerByDevice,
+  highestConsumingRoom,
+  activeDevices,
+  inactiveDevicesCount
 };

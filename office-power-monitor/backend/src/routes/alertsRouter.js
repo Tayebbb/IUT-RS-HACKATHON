@@ -13,9 +13,9 @@ function createAlertsRouter({ alertStore }) {
   router.get('/', (req, res) => {
     const status = String(req.query.status || 'all').toLowerCase();
     let alerts;
-    if (status === 'active') alerts = alertStore.getActive();
-    else if (status === 'all') alerts = alertStore.getAll();
-    else return res.status(400).json({ error: 'invalid_status' });
+    if (status === 'active') {alerts = alertStore.getActive();}
+    else if (status === 'all') {alerts = alertStore.getAll();}
+    else {return res.status(400).json({ error: 'invalid_status' });}
     return res.json({ alerts });
   });
 

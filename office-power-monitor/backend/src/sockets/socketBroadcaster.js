@@ -67,7 +67,7 @@ class SocketBroadcaster {
       this._recordEnergySample();
       this._emitUsage();
     }, this._heartbeatMs);
-    if (typeof this._heartbeat.unref === 'function') this._heartbeat.unref();
+    if (typeof this._heartbeat.unref === 'function') {this._heartbeat.unref();}
 
     this._io.on('connection', (socket) => {
       logger.info('Socket connected', { id: socket.id });
@@ -86,7 +86,7 @@ class SocketBroadcaster {
   }
 
   stop() {
-    if (this._heartbeat) clearInterval(this._heartbeat);
+    if (this._heartbeat) {clearInterval(this._heartbeat);}
     this._heartbeat = null;
   }
 

@@ -28,7 +28,7 @@ function registerRoutes(app, deps) {
 
   // JSON error handler.
   app.use((err, _req, res, _next) => {
-    // eslint-disable-next-line no-console
+     
     console.error('[api-error]', err);
     res.status(500).json({ error: 'internal_error' });
   });

@@ -62,6 +62,8 @@ function formatUsage(usage) {
     '**Office Power Usage**',
     `Instantaneous: **${fmtW(usage.currentPowerWatts)}**`,
     `Today: **${fmtKwh(usage.energyTodayKwh)}**`,
+    `Active Devices: **${usage.activeDevicesCount}**`,
+    `Inactive Devices: **${usage.inactiveDevicesCount}**`,
     '',
     '**By room**'
   ];

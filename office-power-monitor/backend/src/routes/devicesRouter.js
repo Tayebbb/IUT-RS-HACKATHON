@@ -16,7 +16,7 @@ function createDevicesRouter({ deviceStore }) {
 
   router.get('/:id', (req, res) => {
     const device = deviceStore.getById(req.params.id);
-    if (!device) return res.status(404).json({ error: 'device_not_found' });
+    if (!device) {return res.status(404).json({ error: 'device_not_found' });}
     return res.json({ device });
   });
 

@@ -13,7 +13,11 @@ const roomService = require('./roomService');
  * @property {number} currentPowerWatts
  * @property {Record<string, number>} powerByRoom
  * @property {Record<'fan'|'light', number>} powerByType
+ * @property {Record<string, number>} powerByDevice
  * @property {{roomId:string|null, name:string|null, watts:number}} highestConsumingRoom
+ * @property {number} activeDevicesCount
+ * @property {number} inactiveDevicesCount
+ * @property {Array<{id:string, label:string, room:string, type:string, power:number}>} activeDevices
  * @property {number} energyTodayWh
  * @property {number} energyTodayKwh
  * @property {Array<{timestamp:number,powerWatts:number}>} samples
@@ -28,16 +32,21 @@ const roomService = require('./roomService');
  * @returns {UsageSnapshot}
  */
 function buildUsageSnapshot(deviceStore, energyStore) {
-  const devices = deviceStore.getAll();
+  const devices = deviceStore.getAllDevices();
   const rooms = deviceStore.getRooms();
 
   const currentPowerWatts = powerService.totalPower(devices);
   const perRoom = powerService.powerByRoom(devices);
   const perType = powerService.powerByType(devices);
+  const perDevice = powerService.powerByDevice(devices);
   const highest = powerService.highestConsumingRoom(devices);
   const highestName = highest.roomId
     ? (rooms.find((r) => r.id === highest.roomId)?.name ?? null)
     : null;
+    
+  const activeDevs = powerService.activeDevices(devices);
+  const inactiveCount = powerService.inactiveDevicesCount(devices);
+  
   const energy = energyService.snapshot(energyStore);
 
   return {
@@ -45,6 +54,16 @@ function buildUsageSnapshot(deviceStore, energyStore) {
     currentPowerWatts,
     powerByRoom: perRoom,
     powerByType: perType,
+    powerByDevice: perDevice,
+    activeDevicesCount: activeDevs.length,
+    inactiveDevicesCount: inactiveCount,
+    activeDevices: activeDevs.map(d => ({
+      id: d.id,
+      label: d.label,
+      room: d.room,
+      type: d.type,
+      power: d.power
+    })),
     highestConsumingRoom: {
       roomId: highest.roomId,
       name: highestName,
