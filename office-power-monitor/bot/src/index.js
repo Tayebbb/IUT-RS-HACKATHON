@@ -1,6 +1,6 @@
 'use strict';
 
-const { Client, GatewayIntentBits, Partials } = require('discord.js');
+const { Client, GatewayIntentBits, Partials, EmbedBuilder } = require('discord.js');
 const config = require('./config');
 const { findCommand } = require('./commands');
 const { startAlertRelay } = require('./alertRelay');
@@ -47,13 +47,18 @@ client.on('messageCreate', async (message) => {
     }
 
     const reply = await command.run({ args });
-    await message.reply(reply.length > 1900 ? reply.slice(0, 1900) + '\n…' : reply);
+    const embed = new EmbedBuilder()
+      .setColor('#38bdf8')
+      .setDescription(reply.length > 4000 ? reply.slice(0, 4000) + '…' : reply)
+      .setFooter({ text: 'Office Power Monitor' })
+      .setTimestamp();
+    await message.reply({ embeds: [embed] });
   } catch (err) {
      
     console.error('[command-error]', err);
     try {
       await message.reply(`Command failed: ${err.message}`);
-    } catch (_e) {
+    } catch {
       /* ignore */
     }
   }

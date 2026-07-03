@@ -1,6 +1,7 @@
 'use strict';
 
 const { io: ioClient } = require('socket.io-client');
+const { EmbedBuilder } = require('discord.js');
 const config = require('./config');
 const { formatAlert } = require('./formatters');
 
@@ -63,7 +64,12 @@ function startAlertRelay(discordClient) {
       if (!channel?.isTextBased?.()) {continue;}
       for (const alert of fresh) {
         try {
-          await channel.send(formatAlert(alert));
+          const embed = new EmbedBuilder()
+            .setTitle(alert.severity === 'high' ? '🚨 Critical Alert' : alert.severity === 'medium' ? '⚠️ Warning' : 'ℹ️ Notice')
+            .setColor(alert.severity === 'high' ? '#ef4444' : alert.severity === 'medium' ? '#f59e0b' : '#38bdf8')
+            .setDescription(formatAlert(alert))
+            .setTimestamp(new Date(alert.createdAt));
+          await channel.send({ embeds: [embed] });
         } catch (err) {
            
           console.warn('[alert-relay] send failed:', err.message);

@@ -66,6 +66,24 @@ const commands = [
     }
   },
   {
+    name: 'alerts',
+    description: 'Show active system alerts.',
+    usage: '!alerts',
+    async run() {
+      const res = await apiClient.getAlerts();
+      if (!res.alerts || res.alerts.length === 0) {
+        const fallback = 'There are currently no active alerts. Everything is running smoothly! 🎉';
+        return polish(fallback, 'no active alerts');
+      }
+      const lines = ['**Active Alerts**'];
+      for (const a of res.alerts) {
+        lines.push(formatters.formatAlert(a));
+      }
+      const fallback = lines.join('\n');
+      return polish(fallback, 'active alerts summary');
+    }
+  },
+  {
     name: 'help',
     description: 'List available commands.',
     usage: '!help',
