@@ -1,6 +1,7 @@
 'use strict';
 
 const express = require('express');
+const { success, error } = require('../utils/apiResponse');
 
 /**
  * @param {Object} deps
@@ -18,9 +19,9 @@ function createIncidentsRouter({ incidentAggregator }) {
     } else if (status === 'all') {
       incidents = incidentAggregator.getAll();
     } else {
-      return res.status(400).json({ error: 'invalid_status' });
+      return error(res, 'invalid_status', 400);
     }
-    return res.json({ incidents });
+    return success(res, incidents);
   });
 
   return router;

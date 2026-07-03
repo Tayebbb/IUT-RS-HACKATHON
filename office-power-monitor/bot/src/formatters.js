@@ -61,7 +61,8 @@ function formatUsage(usage) {
   const lines = [
     '**Office Power Usage**',
     `Instantaneous: **${fmtW(usage.currentPowerWatts)}**`,
-    `Today: **${fmtKwh(usage.energyTodayKwh)}**`,
+    `Today: **${fmtKwh(usage.energyTodayKwh)}** (~${usage.energyCostBdt || 0} BDT)`,
+    `Est. Monthly Cost: **~${usage.projectedMonthlyCostBdt || 0} BDT** (projected)`,
     `Active Devices: **${usage.activeDevicesCount}**`,
     `Inactive Devices: **${usage.inactiveDevicesCount}**`,
     '',
@@ -85,4 +86,18 @@ function formatAlert(alert) {
   return `${icon} **[${alert.severity.toUpperCase()}]** ${alert.message}\n_kind:_ \`${alert.kind}\` · _at:_ ${alert.createdAt}`;
 }
 
-module.exports = { formatStatus, formatRoom, formatUsage, formatAlert };
+/**
+ * @param {any} incident
+ * @returns {string}
+ */
+function formatIncident(incident) {
+  const icon = incident.severity === 'high' ? '🚨' : incident.severity === 'medium' ? '⚠️' : 'ℹ️';
+  const roomName = incident.room ? incident.room.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'Office';
+  
+  const alertCount = incident.alertIds.length;
+  const alertWord = alertCount === 1 ? 'alert' : 'alerts';
+  
+  return `${icon} **[${incident.severity.toUpperCase()}] Energy Anomaly Detected**\nAn incident was opened for the **${roomName}** with ${alertCount} active ${alertWord}.\nPlease review the office dashboard to resolve this issue.`;
+}
+
+module.exports = { formatStatus, formatRoom, formatUsage, formatAlert, formatIncident };

@@ -1,6 +1,7 @@
 'use strict';
 
 const express = require('express');
+const { success, error } = require('../utils/apiResponse');
 
 /**
  * @param {Object} deps
@@ -11,15 +12,15 @@ function createDevicesRouter({ deviceStore }) {
   const router = express.Router();
 
   router.get('/', (_req, res) => {
-    res.json({ devices: deviceStore.getAll() });
+    success(res, deviceStore.getAll());
   });
 
   router.get('/:id', (req, res) => {
     const device = deviceStore.getById(req.params.id);
     if (!device) {
-      return res.status(404).json({ error: 'device_not_found' });
+      return error(res, 'device_not_found', 404);
     }
-    return res.json({ device });
+    return success(res, device);
   });
 
   return router;

@@ -50,9 +50,13 @@ function bootstrap() {
   const usageService = new UsageService({ deviceStore, energyStore });
   const alertService = new AlertService({ alertStore });
   const incidentService = new IncidentService({ incidentAggregator });
-  const demoService = new DemoService({ deviceStore, simulator });
+  const demoService = new DemoService({ deviceStore, simulator, energyStore });
 
   registerRoutes(app, {
+    deviceStore,
+    energyStore,
+    alertStore,
+    incidentAggregator,
     deviceService,
     roomService,
     usageService,

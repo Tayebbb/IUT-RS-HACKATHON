@@ -27,6 +27,15 @@ class EnergyStore {
   }
 
   /**
+   * Reset Wh today and samples with optional seed.
+   * @param {number} [seedWh=0]
+   */
+  reset(seedWh = 0) {
+    this._samples = [];
+    this._energyWhToday = seedWh;
+  }
+
+  /**
    * @param {number} ms
    * @returns {string} YYYY-MM-DD in local time.
    * @private

@@ -50,8 +50,10 @@ client.on('messageCreate', async (message) => {
       message.channel.sendTyping().catch(() => {});
     }
 
-    const reply = await command.run({ args });
-    await message.reply(reply.length > 1900 ? reply.slice(0, 1900) + '\n…' : reply);
+    const reply = await command.run({ args, message });
+    if (reply !== null && reply !== undefined) {
+      await message.reply(reply.length > 1900 ? reply.slice(0, 1900) + '\n…' : reply);
+    }
   } catch (err) {
     console.error('[command-error]', err);
     try {
