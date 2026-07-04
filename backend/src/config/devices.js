@@ -19,13 +19,14 @@ const WATTAGE = Object.freeze({
 });
 
 /**
- * Build the initial device catalog: 2 fans + 3 lights per room.
+ * Build the initial device catalog: 2 fans + 3 lights per room = 15 devices total.
  * @returns {Array<{id:string,label:string,type:'fan'|'light',room:string,wattage:number}>}
  */
 function buildDeviceCatalog() {
   const devices = [];
   for (const room of ROOMS) {
-    for (let i = 1; i <= 3; i += 1) {
+    // 2 Fans per room
+    for (let i = 1; i <= 2; i += 1) {
       devices.push({
         id: `${room.id}-fan-${i}`,
         label: `Fan ${i}`,
@@ -34,6 +35,7 @@ function buildDeviceCatalog() {
         wattage: WATTAGE.fan
       });
     }
+    // 3 Lights per room
     for (let i = 1; i <= 3; i += 1) {
       devices.push({
         id: `${room.id}-light-${i}`,

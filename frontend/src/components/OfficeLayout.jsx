@@ -32,13 +32,13 @@ export default function OfficeLayout({ devices = [], rooms = [], alerts = [] }) 
 
   // Local positions inside each room
   const lightSlots = [
-    { x: 60, y: 70 },
-    { x: 130, y: 70 },
-    { x: 200, y: 70 }
+    { x: 50, y: 70 },   // Top left
+    { x: 210, y: 70 },  // Top right
+    { x: 130, y: 280 }  // Bottom center
   ];
   const fanSlots = [
-    { x: 90, y: 210 },
-    { x: 170, y: 210 }
+    { x: 130, y: 90 },  // Top center
+    { x: 130, y: 220 }  // Center/Bottom
   ];
 
   const handleMouseMove = (e) => {
@@ -59,7 +59,7 @@ export default function OfficeLayout({ devices = [], rooms = [], alerts = [] }) 
 
       <div className="relative w-full overflow-hidden rounded-xl border border-white/10 bg-ink-900/60 shadow-inner">
         <svg
-          viewBox="0 0 860 480"
+          viewBox="0 0 860 520"
           className="block h-auto w-full select-none"
           role="img"
           aria-label="Interactive Top-down office floor plan"
@@ -95,17 +95,23 @@ export default function OfficeLayout({ devices = [], rooms = [], alerts = [] }) 
                 <rect x={slot.x + slot.w / 2 - 25} y={slot.y + slot.h - 10} width="50" height="20" fill="black" />
               </mask>
             ))}
+            {/* Mask for outer building bottom wall — cuts main entry door gap at y=470 */}
+            <mask id={`main-entry-mask-${uid}`}>
+              <rect x="0" y="0" width="860" height="520" fill="white" />
+              <rect x="400" y="467" width="60" height="8" fill="black" />
+            </mask>
           </defs>
 
           <rect x="0" y="0" width="860" height="480" fill={`url(#floor-grid-${uid})`} />
 
-          {/* Outer building outline */}
+          {/* Outer building outline — with main entry door gap */}
           <rect
             x="8" y="40" width="844" height="430" rx="12"
             fill="none"
             stroke="rgba(148,163,184,0.3)"
             strokeWidth="2"
             strokeDasharray="8,4"
+            mask={`url(#main-entry-mask-${uid})`}
           />
           <text x="20" y="30" fill="rgba(226,232,240,0.7)" fontSize="14" fontWeight="600" letterSpacing="2">
             OFFICE FLOOR PLAN
@@ -165,19 +171,66 @@ export default function OfficeLayout({ devices = [], rooms = [], alerts = [] }) 
                   </text>
                 )}
 
-                {/* Decorative Table */}
-                <rect x={slot.x + slot.w / 2 - 55} y={slot.y + slot.h / 2 - 25} width="110" height="60" rx="6"
-                  fill="rgba(56,189,248,0.08)" stroke="rgba(56,189,248,0.35)" strokeWidth="1.5" />
-                {/* Decorative Chairs */}
-                {[
-                  { cx: -75, cy: 5 }, { cx: 75, cy: 5 },
-                  { cx: -30, cy: -50 }, { cx: 30, cy: -50 },
-                  { cx: -30, cy: 60 }, { cx: 30, cy: 60 }
-                ].map((c, i) => (
-                  <circle key={i}
-                    cx={slot.x + slot.w / 2 + c.cx} cy={slot.y + slot.h / 2 + c.cy}
-                    r="10" fill="rgba(148,163,184,0.15)" stroke="rgba(148,163,184,0.5)" strokeWidth="1.2" />
-                ))}
+                {/* Windows */}
+                {slot.id === 'drawing-room' && (
+                  <g stroke="#bae6fd" strokeWidth="4" strokeLinecap="square">
+                    <line x1={slot.x} y1={slot.y + 100} x2={slot.x} y2={slot.y + 180} />
+                    <line x1={slot.x + 80} y1={slot.y} x2={slot.x + 140} y2={slot.y} />
+                  </g>
+                )}
+                {slot.id === 'work-room-1' && (
+                  <g stroke="#bae6fd" strokeWidth="4" strokeLinecap="square">
+                    <line x1={slot.x + 80} y1={slot.y} x2={slot.x + 140} y2={slot.y} />
+                  </g>
+                )}
+                {slot.id === 'work-room-2' && (
+                  <g stroke="#bae6fd" strokeWidth="4" strokeLinecap="square">
+                    <line x1={slot.x + 80} y1={slot.y} x2={slot.x + 140} y2={slot.y} />
+                    <line x1={slot.x + slot.w} y1={slot.y + 160} x2={slot.x + slot.w} y2={slot.y + 240} />
+                  </g>
+                )}
+
+                {/* Decorative Furniture */}
+                {slot.id === 'drawing-room' ? (
+                  <g className="furniture-drawing-room">
+                    {/* Sofa */}
+                    <rect x={slot.x + 20} y={slot.y + 120} width="35" height="120" rx="4" fill="rgba(217,192,154,0.3)" stroke="rgba(217,192,154,0.6)" strokeWidth="1.5" />
+                    <rect x={slot.x + 25} y={slot.y + 125} width="20" height="35" rx="2" fill="rgba(217,192,154,0.4)" />
+                    <rect x={slot.x + 25} y={slot.y + 165} width="20" height="30" rx="2" fill="rgba(217,192,154,0.4)" />
+                    <rect x={slot.x + 25} y={slot.y + 200} width="20" height="35" rx="2" fill="rgba(217,192,154,0.4)" />
+                    
+                    {/* Coffee Table */}
+                    <rect x={slot.x + 80} y={slot.y + 150} width="40" height="60" rx="3" fill="rgba(146,112,85,0.4)" stroke="rgba(146,112,85,0.7)" strokeWidth="1.5" />
+                    
+                    {/* Single Armchair */}
+                    <rect x={slot.x + 30} y={slot.y + 260} width="40" height="35" rx="6" fill="rgba(217,192,154,0.3)" stroke="rgba(217,192,154,0.6)" strokeWidth="1.5" transform={`rotate(-15 ${slot.x + 50} ${slot.y + 277})`} />
+                    
+                    {/* Plants */}
+                    <circle cx={slot.x + 35} cy={slot.y + 35} r="12" fill="rgba(101,163,13,0.3)" stroke="rgba(101,163,13,0.6)" />
+                    <circle cx={slot.x + slot.w - 35} cy={slot.y + slot.h - 35} r="14" fill="rgba(101,163,13,0.3)" stroke="rgba(101,163,13,0.6)" />
+                  </g>
+                ) : (
+                  <g className="furniture-work-room">
+                    {/* 4 Desks Grid */}
+                    {[
+                      { dx: 45, dy: 130 }, { dx: 185, dy: 130 },
+                      { dx: 45, dy: 240 }, { dx: 185, dy: 240 }
+                    ].map((pos, i) => (
+                      <g key={i}>
+                        {/* Desk */}
+                        <rect x={slot.x + pos.dx - 30} y={slot.y + pos.dy - 20} width="60" height="40" rx="3" fill="rgba(212,170,123,0.3)" stroke="rgba(212,170,123,0.6)" strokeWidth="1.5" />
+                        {/* Monitor */}
+                        <rect x={slot.x + pos.dx - 15} y={slot.y + pos.dy - 10} width="30" height="8" rx="1" fill="rgba(30,41,59,0.8)" />
+                        {/* Keyboard */}
+                        <rect x={slot.x + pos.dx - 10} y={slot.y + pos.dy + 4} width="20" height="5" rx="0.5" fill="rgba(203,213,225,0.4)" />
+                        {/* Chair */}
+                        <circle cx={slot.x + pos.dx} cy={slot.y + pos.dy + 28} r="8" fill="rgba(71,85,105,0.6)" stroke="rgba(15,23,42,0.8)" />
+                      </g>
+                    ))}
+                    {/* Plant */}
+                    <circle cx={slot.x + 30} cy={slot.y + 35} r="10" fill="rgba(101,163,13,0.2)" stroke="rgba(101,163,13,0.5)" />
+                  </g>
+                )}
 
                 {/* ── LIGHTS ─────────────────────────────────────── */}
                 {lightSlots.map((pos, idx) => {
@@ -350,9 +403,34 @@ export default function OfficeLayout({ devices = [], rooms = [], alerts = [] }) 
             );
           })}
 
-          <text x="430" y="465" fill="rgba(148,163,184,0.6)" fontSize="10" textAnchor="middle" letterSpacing="3">
+          <text x="430" y="450" fill="rgba(148,163,184,0.6)" fontSize="10" textAnchor="middle" letterSpacing="3">
             — MAIN CORRIDOR —
           </text>
+
+          {/* Main Entry Door — swings OUTWARD (below the building wall, y > 470) */}
+          <g stroke="rgba(148,163,184,0.85)" strokeWidth="1.8" fill="none">
+            {/* Left door jamb — sits on the outer wall */}
+            <line x1="400" y1="468" x2="400" y2="475" />
+            {/* Right door jamb */}
+            <line x1="460" y1="468" x2="460" y2="475" />
+            {/* Door leaf arc — sweeps outward (below the wall, CCW from right to left jamb) */}
+            <path
+              strokeDasharray="4,3"
+              d="M 400 470 A 60 60 0 0 0 460 470"
+            />
+          </g>
+
+          {/* ENTRY arrow and label — positioned below the outward-swinging door arc */}
+          <g>
+            {/* Arrow shaft coming up toward the door */}
+            <line x1="430" y1="515" x2="430" y2="496" stroke="rgba(148,163,184,0.9)" strokeWidth="2" />
+            {/* Arrowhead pointing toward the door */}
+            <polygon points="430,490 425,500 435,500" fill="rgba(148,163,184,0.9)" />
+            {/* ENTRY text */}
+            <text x="430" y="512" fill="rgba(226,232,240,0.85)" fontSize="11" textAnchor="middle" fontWeight="700" letterSpacing="3">
+              ENTRY
+            </text>
+          </g>
         </svg>
 
         {/* Selected Device Details Modal */}

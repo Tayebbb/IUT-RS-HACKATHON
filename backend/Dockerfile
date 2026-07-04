@@ -19,12 +19,12 @@ COPY . .
 # Set non-root user for security
 USER node
 
-# Expose backend port
-EXPOSE 4000
+# HuggingFace Spaces requires port 7860
+EXPOSE 7860
 
-# Healthcheck to verify the server is running
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:4000/api/usage || exit 1
+# Healthcheck — uses PORT env var with fallback to 7860
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT:-7860}/api/usage || exit 1
 
 # Start the application with dumb-init
 CMD ["dumb-init", "node", "src/server.js"]

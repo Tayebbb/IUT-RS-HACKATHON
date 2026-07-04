@@ -19,7 +19,7 @@
 
 The **Office Power Monitor** is an enterprise-grade IoT platform built to track, analyze, and alert on real-time electricity consumption across multiple office rooms. Designed with a **single source of truth**, this monorepo features a live simulator, a highly scalable Node.js/Socket.IO backend, a premium React glassmorphism dashboard, and a fully integrated Discord Bot for chat-ops.
 
-The default configuration simulates an office with **3 rooms** (Drawing Room, Work Room 1, Work Room 2) and **18 devices** (Lights & Fans) to resolve the ambiguous device count specifications in the project requirements (committing to 18 devices total, representing exactly 3 fans and 3 lights per room). The internal physics engine dynamically simulates power draw, respects working hours, calculates instantaneous W and cumulative kWh, and automatically raises incident alerts for anomalous usage.
+The default configuration simulates an office with **3 rooms** (Drawing Room, Work Room 1, Work Room 2) and **15 devices** — exactly **2 Fans and 3 Lights per room** — matching the official problem setter floor plan. The interactive SVG map renders each room with accurate furniture: a sofa and coffee table in the Drawing Room, and 4-desk workstations in Work Room 1 and Work Room 2. Structural windows are rendered on the correct walls. The internal physics engine dynamically simulates power draw, respects working hours, calculates instantaneous W and cumulative kWh, and automatically raises incident alerts for anomalous usage.
 
 ---
 
