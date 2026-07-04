@@ -20,9 +20,10 @@ const powerService = require('./powerService');
 /**
  * Build a rich summary of every room from the current device snapshot.
  * @param {DeviceStore} store
+ * @param {import('../store/roomSampleBuffer').RoomSampleBuffer} [sampleBuffer]
  * @returns {RoomSummary[]}
  */
-function summarizeRooms(store) {
+function summarizeRooms(store, sampleBuffer) {
   const rooms = store.getRooms();
   const devices = store.getAll();
   const perRoomWatts = powerService.powerByRoom(devices);
@@ -38,18 +39,20 @@ function summarizeRooms(store) {
       onCount,
       offCount: roomDevices.length - onCount,
       powerWatts: perRoomWatts[room.id] || 0,
-      allOn: roomDevices.length > 0 && onCount === roomDevices.length
+      allOn: roomDevices.length > 0 && onCount === roomDevices.length,
+      samples: sampleBuffer ? sampleBuffer.getSamples(room.id, 20) : []
     };
   });
 }
 
 /**
  * @param {DeviceStore} store
+ * @param {import('../store/roomSampleBuffer').RoomSampleBuffer} [sampleBuffer]
  * @param {string} roomId
  * @returns {RoomSummary|undefined}
  */
-function getRoomSummary(store, roomId) {
-  return summarizeRooms(store).find((r) => r.id === roomId);
+function getRoomSummary(store, sampleBuffer, roomId) {
+  return summarizeRooms(store, sampleBuffer).find((r) => r.id === roomId);
 }
 
 /**
@@ -59,18 +62,20 @@ class RoomService {
   /**
    * @param {Object} deps
    * @param {DeviceStore} deps.deviceStore
+   * @param {import('../store/roomSampleBuffer').RoomSampleBuffer} [deps.roomSampleBuffer]
    */
-  constructor({ deviceStore }) {
+  constructor({ deviceStore, roomSampleBuffer }) {
     if (!deviceStore) throw new Error('RoomService requires deviceStore');
     this._store = deviceStore;
+    this._sampleBuffer = roomSampleBuffer;
   }
 
   summarizeRooms() {
-    return summarizeRooms(this._store);
+    return summarizeRooms(this._store, this._sampleBuffer);
   }
 
   getRoomSummary(roomId) {
-    return getRoomSummary(this._store, roomId);
+    return getRoomSummary(this._store, this._sampleBuffer, roomId);
   }
 }
 

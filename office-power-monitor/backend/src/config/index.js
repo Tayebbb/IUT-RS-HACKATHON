@@ -12,6 +12,8 @@ require('dotenv').config();
  * @property {number} officeHourStart
  * @property {number} officeHourEnd
  * @property {number} roomOnMaxHours
+ * @property {string|null} hfApiToken    HuggingFace Inference API token
+ * @property {string} hfModel           HuggingFace model ID
  */
 
 /**
@@ -35,7 +37,9 @@ const config = {
   officeHourStart: toInt(process.env.OFFICE_HOUR_START, 9),
   officeHourEnd: toInt(process.env.OFFICE_HOUR_END, 17),
   roomOnMaxHours: toInt(process.env.ROOM_ON_MAX_HOURS, 2),
-  tariffBdtPerKwh: Number(process.env.TARIFF_BDT_PER_KWH || 7.0)
+  tariffBdtPerKwh: Number(process.env.TARIFF_BDT_PER_KWH || 7.0),
+  hfApiToken: process.env.HF_API_TOKEN || null,
+  hfModel: process.env.HF_MODEL || 'mistralai/Mistral-7B-Instruct-v0.2'
 };
 
 module.exports = config;

@@ -23,15 +23,19 @@ class AlertEngine {
    * @param {Object} deps
    * @param {DeviceStore} deps.deviceStore
    * @param {AlertStore}  deps.alertStore
+   * @param {import('../store/roomSampleBuffer').RoomSampleBuffer} [deps.roomSampleBuffer]
+   * @param {import('../services/huggingFaceService').HuggingFaceService} [deps.hfService]
    * @param {() => number} [deps.now]
    * @param {number} [deps.evaluateEveryMs=10000]
    */
-  constructor({ deviceStore, alertStore, now, evaluateEveryMs }) {
+  constructor({ deviceStore, alertStore, roomSampleBuffer, hfService, now, evaluateEveryMs }) {
     if (!deviceStore || !alertStore) {
       throw new Error('AlertEngine requires deviceStore + alertStore');
     }
     this._devices = deviceStore;
     this._alerts = alertStore;
+    this._roomSampleBuffer = roomSampleBuffer;
+    this._hfService = hfService || null;
     this._now = now || Date.now;
     this._evaluateEveryMs = evaluateEveryMs ?? 10_000;
     /** @type {Map<string, number>} room id → epoch ms when room went all-on */
@@ -152,6 +156,70 @@ class AlertEngine {
           });
           if (opened) {
             mutated = true;
+          }
+        }
+      }
+
+      // Rule 4: Anomaly Spike Detector
+      if (this._roomSampleBuffer) {
+        const samples = this._roomSampleBuffer.getSamples(room.id, 60);
+        if (samples.length >= 3) {
+          // Compute baseline stats excluding the latest point
+          const baseline = samples.slice(0, -1).map(s => s.w);
+          const latest = samples[samples.length - 1].w;
+          
+          const mean = baseline.reduce((a, b) => a + b, 0) / baseline.length;
+          const variance = baseline.reduce((a, b) => a + (b - mean) ** 2, 0) / baseline.length;
+          const stddev = Math.sqrt(variance);
+
+          // DEBUG LOG
+          console.log(`[DEBUG] Room ${room.id} anomaly check: baseline_len=${baseline.length} mean=${mean} stddev=${stddev} latest=${latest}`);
+
+          // Detect a spike: current is > mean + 2*stddev
+          // Also require a minimum jump (e.g. 45W) so turning on one light doesn't trigger it when mean is 0.
+          if (latest > mean + 2 * stddev && (latest - mean) >= 45) {
+            const sig = `power-anomaly:${room.id}`;
+            keep.add(sig);
+            
+            const deviation = ((latest - mean) / (mean || 1)) * 100;
+            const deviationStr = isFinite(deviation) && mean > 5 ? ` (+${Math.round(deviation)}%)` : '';
+
+            const { opened } = this._alerts.upsert({
+              signature: sig,
+              kind: 'power_anomaly',
+              severity: 'high',
+              room: room.id,
+              device: null,
+              message: `Unusual power spike in ${room.name}: ${Math.round(latest)}W detected${deviationStr}, baseline is ~${Math.round(mean)}W.`,
+              nowMs
+            });
+            if (opened) {
+              mutated = true;
+              // Fire-and-forget: generate AI insight asynchronously — don't block evaluate()
+              if (this._hfService) {
+                const activeDevices = room.devices
+                  .filter(d => d.status === 'on')
+                  .map(d => `${d.label} (${d.wattage}W)`);
+                this._hfService.generateInsight({
+                  signature: sig,
+                  roomName: room.name,
+                  currentW: latest,
+                  baselineW: mean,
+                  deviationPct: deviation,
+                  activeDevices,
+                  isOfficeHours: isOfficeHours(nowMs),
+                  energyCostBdt: 0, // placeholder; cost injected below when available
+                  tariff: config.tariffBdtPerKwh
+                }).then(insight => {
+                  if (insight) {
+                    logger.info('[HuggingFace] Insight attached', { room: room.id, length: insight.length });
+                    this._alerts.attachInsight(sig, insight);
+                  }
+                }).catch(err => {
+                  logger.warn('[HuggingFace] Insight failed', { error: err.message });
+                });
+              }
+            }
           }
         }
       }

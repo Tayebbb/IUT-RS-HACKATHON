@@ -12,10 +12,15 @@
 
 const { deviceStore, DeviceStore } = require('./deviceStore');
 const { energyStore, EnergyStore } = require('./energyStore');
+const { RoomSampleBuffer } = require('./roomSampleBuffer');
+
+const roomSampleBuffer = new RoomSampleBuffer();
 
 module.exports = {
   deviceStore,
   energyStore,
+  roomSampleBuffer,
   DeviceStore,
-  EnergyStore
+  EnergyStore,
+  RoomSampleBuffer
 };

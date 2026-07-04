@@ -47,7 +47,6 @@ export function FanIcon({ on = false, wattage = 75, size = 20 }) {
               cx="12" cy="6.5"
               rx="3.2" ry="5.5"
               fill={on ? 'rgba(56,189,248,0.92)' : 'rgba(100,116,139,0.6)'}
-              rx="3.2"
             />
             {/* Blade highlight */}
             <ellipse

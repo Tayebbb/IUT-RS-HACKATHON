@@ -7,12 +7,13 @@ const { createApp } = require('./app');
 const config = require('./config');
 const logger = require('./utils/logger');
 
-const { deviceStore, energyStore } = require('./store');
+const { deviceStore, energyStore, roomSampleBuffer } = require('./store');
 const { alertStore, AlertEngine } = require('./alerts');
 const { IncidentAggregator } = require('./incidents');
 const { Simulator } = require('./simulator');
 const { registerRoutes } = require('./routes');
 const { SocketBroadcaster } = require('./sockets');
+const { HuggingFaceService } = require('./services/huggingFaceService');
 const {
   DeviceService,
   RoomService,
@@ -34,19 +35,25 @@ function bootstrap() {
     cors: { origin: config.corsOrigin, methods: ['GET', 'POST'] }
   });
 
-  const alertEngine = new AlertEngine({ deviceStore, alertStore });
+  const hfService = new HuggingFaceService({
+    apiToken: config.hfApiToken,
+    model: config.hfModel
+  });
+
+  const alertEngine = new AlertEngine({ deviceStore, alertStore, roomSampleBuffer, hfService });
   const incidentAggregator = new IncidentAggregator({ alertStore });
   const broadcaster = new SocketBroadcaster({
     io,
     deviceStore,
     energyStore,
     alertStore,
-    incidentAggregator
+    incidentAggregator,
+    roomSampleBuffer
   });
   const simulator = new Simulator({ deviceStore });
 
   const deviceService = new DeviceService({ deviceStore });
-  const roomService = new RoomService({ deviceStore });
+  const roomService = new RoomService({ deviceStore, roomSampleBuffer });
   const usageService = new UsageService({ deviceStore, energyStore });
   const alertService = new AlertService({ alertStore });
   const incidentService = new IncidentService({ incidentAggregator });
@@ -66,8 +73,8 @@ function bootstrap() {
   });
 
   incidentAggregator.start();
+  broadcaster.start(); // Must start before alertEngine so roomSampleBuffer gets the spike!
   alertEngine.start();
-  broadcaster.start();
   simulator.start();
 
   server.listen(config.port, config.host, () => {
