@@ -38,6 +38,7 @@ class DemoService {
           this._energyStore.reset(12400); // Seed 12.4 kWh for persuasive demo figures
         }
         return { message: 'All devices turned OFF' };
+      }
 
       case 'high-power':
       case 'office-hours': {
