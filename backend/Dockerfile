@@ -1,5 +1,5 @@
 # Use official Node 20 Alpine for small footprint
-FROM node:20-alpine
+FROM node:26-alpine
 
 # Install dumb-init for proper signal handling
 RUN apk add --no-cache dumb-init
