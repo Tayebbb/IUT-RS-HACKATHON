@@ -58,7 +58,7 @@ jobs:
 
       - name: Extract image metadata (tags & labels)
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/opm-${{ matrix.service }}
           # Produces tags like: v1.2.3, 1.2.3, 1.2, 1, latest (semver), + sha-<short>, + main
