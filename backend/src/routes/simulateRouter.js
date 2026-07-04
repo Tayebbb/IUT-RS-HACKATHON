@@ -15,11 +15,11 @@ function createSimulateRouter({ deviceStore, roomSampleBuffer }) {
 
   router.post('/', (req, res) => {
     const { simulatedDevices } = req.body;
-    
+
     if (!simulatedDevices || !Array.isArray(simulatedDevices)) {
       return error(res, 'missing_or_invalid_devices_array', 400);
     }
-    
+
     try {
       const result = evaluateSimulation(deviceStore, roomSampleBuffer, simulatedDevices);
       return success(res, result);

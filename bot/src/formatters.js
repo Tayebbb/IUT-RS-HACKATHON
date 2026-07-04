@@ -92,11 +92,13 @@ function formatAlert(alert) {
  */
 function formatIncident(incident) {
   const icon = incident.severity === 'high' ? '🚨' : incident.severity === 'medium' ? '⚠️' : 'ℹ️';
-  const roomName = incident.room ? incident.room.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'Office';
-  
+  const roomName = incident.room
+    ? incident.room.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+    : 'Office';
+
   const alertCount = incident.alertIds.length;
   const alertWord = alertCount === 1 ? 'alert' : 'alerts';
-  
+
   return `${icon} **[${incident.severity.toUpperCase()}] Energy Anomaly Detected**\nAn incident was opened for the **${roomName}** with ${alertCount} active ${alertWord}.\nPlease review the office dashboard to resolve this issue.`;
 }
 

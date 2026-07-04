@@ -86,7 +86,7 @@ function powerByDevice(devices) {
  * @returns {Device[]}
  */
 function activeDevices(devices) {
-  return devices.filter(d => d.status === 'on');
+  return devices.filter((d) => d.status === 'on');
 }
 
 /**
@@ -94,7 +94,7 @@ function activeDevices(devices) {
  * @returns {number}
  */
 function inactiveDevicesCount(devices) {
-  return devices.filter(d => d.status === 'off').length;
+  return devices.filter((d) => d.status === 'off').length;
 }
 
 module.exports = {

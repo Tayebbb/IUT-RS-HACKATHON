@@ -15,7 +15,7 @@ function validateQueryEnum(queryParam, allowedValues, defaultValue) {
       val = defaultValue;
       req.query[queryParam] = val;
     }
-    
+
     if (val && !allowedValues.includes(String(val).toLowerCase())) {
       return error(
         res,

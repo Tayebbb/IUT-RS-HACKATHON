@@ -45,7 +45,9 @@ class RoomSampleBuffer {
    */
   getSamples(roomId, n = 20) {
     const buf = this._data.get(roomId);
-    if (!buf || buf.length === 0) {return [];}
+    if (!buf || buf.length === 0) {
+      return [];
+    }
     return buf.slice(-n);
   }
 
@@ -58,12 +60,13 @@ class RoomSampleBuffer {
    */
   getStats(roomId) {
     const buf = this._data.get(roomId);
-    if (!buf || buf.length < 3) {return null;}
+    if (!buf || buf.length < 3) {
+      return null;
+    }
 
     const values = buf.map((s) => s.w);
     const mean = values.reduce((a, b) => a + b, 0) / values.length;
-    const variance =
-      values.reduce((a, b) => a + (b - mean) ** 2, 0) / values.length;
+    const variance = values.reduce((a, b) => a + (b - mean) ** 2, 0) / values.length;
     const stddev = Math.sqrt(variance);
     const latest = values[values.length - 1];
 

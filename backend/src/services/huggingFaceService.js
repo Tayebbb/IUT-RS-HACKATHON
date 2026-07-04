@@ -89,9 +89,8 @@ class HuggingFaceService {
 
     const savingsPerHour = ((ctx.currentW - ctx.baselineW) / 1000) * ctx.tariff;
 
-    const deviceList = ctx.activeDevices.length > 0
-      ? ctx.activeDevices.join(', ')
-      : 'no devices reported';
+    const deviceList =
+      ctx.activeDevices.length > 0 ? ctx.activeDevices.join(', ') : 'no devices reported';
 
     return `You are an AI energy analyst for a smart office power monitoring system in Bangladesh.
 
@@ -129,14 +128,12 @@ Maintain a strictly professional, formal, and objective tone. Under no circumsta
         method: 'POST',
         signal: controller.signal,
         headers: {
-          'Authorization': `Bearer ${this._token}`,
+          Authorization: `Bearer ${this._token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           model: this._model,
-          messages: [
-            { role: 'user', content: prompt }
-          ],
+          messages: [{ role: 'user', content: prompt }],
           max_tokens: 120,
           temperature: 0.4,
           stream: false

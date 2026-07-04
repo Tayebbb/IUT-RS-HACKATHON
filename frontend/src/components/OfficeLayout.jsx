@@ -13,7 +13,13 @@ import { motion, AnimatePresence, useMotionValue } from 'framer-motion';
  *
  * @param {{devices: any[], rooms: any[]}} props
  */
-export default function OfficeLayout({ devices = [], rooms = [], alerts = [], isSimMode = false, onDeviceToggle }) {
+export default function OfficeLayout({
+  devices = [],
+  rooms = [],
+  alerts = [],
+  isSimMode = false,
+  onDeviceToggle
+}) {
   const [hoverId, setHoverId] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
   const mouseX = useMotionValue(0);
@@ -33,14 +39,14 @@ export default function OfficeLayout({ devices = [], rooms = [], alerts = [], is
 
   // Local positions inside each room
   const lightSlots = [
-    { x: 50, y: 70 },   // Top left
-    { x: 210, y: 70 },  // Top right
-    { x: 130, y: 280 }  // Bottom center
+    { x: 50, y: 70 }, // Top left
+    { x: 210, y: 70 }, // Top right
+    { x: 130, y: 280 } // Bottom center
   ];
   const fanSlots = [
-    { x: 130, y: 80 },  // Top center
+    { x: 130, y: 80 }, // Top center
     { x: 130, y: 160 }, // Center
-    { x: 130, y: 240 }  // Bottom center
+    { x: 130, y: 240 } // Bottom center
   ];
 
   const handleMouseMove = (e) => {
@@ -68,7 +74,9 @@ export default function OfficeLayout({ devices = [], rooms = [], alerts = [], is
         <div className="text-xs text-slate-400">Hover for info · Click for details</div>
       </div>
 
-      <div className={`relative w-full overflow-hidden rounded-xl border ${isSimMode ? 'border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.3)]' : 'border-white/10'} bg-ink-900/60 shadow-inner`}>
+      <div
+        className={`relative w-full overflow-hidden rounded-xl border ${isSimMode ? 'border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.3)]' : 'border-white/10'} bg-ink-900/60 shadow-inner`}
+      >
         {isSimMode && (
           <div className="absolute top-4 right-4 z-10 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
@@ -98,7 +106,7 @@ export default function OfficeLayout({ devices = [], rooms = [], alerts = [], is
               <stop offset="0%" stopColor="rgba(56,189,248,0.5)" />
               <stop offset="100%" stopColor="rgba(56,189,248,0)" />
             </radialGradient>
-            
+
             {/* Anomaly heat pulse */}
             <radialGradient id={`anomaly-pulse-${uid}`} cx="50%" cy="50%" r="50%">
               <stop offset="0%" stopColor="rgba(239,68,68,0.25)" />
@@ -109,7 +117,13 @@ export default function OfficeLayout({ devices = [], rooms = [], alerts = [], is
             {roomSlots.map((slot) => (
               <mask id={`door-mask-${slot.id}-${uid}`} key={slot.id}>
                 <rect x="0" y="0" width="860" height="480" fill="white" />
-                <rect x={slot.x + slot.w / 2 - 25} y={slot.y + slot.h - 10} width="50" height="20" fill="black" />
+                <rect
+                  x={slot.x + slot.w / 2 - 25}
+                  y={slot.y + slot.h - 10}
+                  width="50"
+                  height="20"
+                  fill="black"
+                />
               </mask>
             ))}
             {/* Mask for outer building bottom wall — cuts main entry door gap at y=470 */}
@@ -123,50 +137,82 @@ export default function OfficeLayout({ devices = [], rooms = [], alerts = [], is
 
           {/* Outer building outline — with main entry door gap */}
           <rect
-            x="8" y="40" width="844" height="430" rx="12"
+            x="8"
+            y="40"
+            width="844"
+            height="430"
+            rx="12"
             fill="none"
             stroke="rgba(148,163,184,0.3)"
             strokeWidth="2"
             strokeDasharray="8,4"
             mask={`url(#main-entry-mask-${uid})`}
           />
-          <text x="20" y="30" fill="rgba(226,232,240,0.7)" fontSize="14" fontWeight="600" letterSpacing="2">
+          <text
+            x="20"
+            y="30"
+            fill="rgba(226,232,240,0.7)"
+            fontSize="14"
+            fontWeight="600"
+            letterSpacing="2"
+          >
             OFFICE FLOOR PLAN
           </text>
 
           {roomSlots.map((slot) => {
             const meta = roomByIdMeta.get(slot.id);
-            const hasAnomaly = alerts.some(a => a.room === slot.id && a.kind === 'power_anomaly');
-            
+            const hasAnomaly = alerts.some((a) => a.room === slot.id && a.kind === 'power_anomaly');
+
             // Heatmap calculation
-            const utilisation = meta && meta.totalDevices > 0 ? meta.onCount / meta.totalDevices : 0;
+            const utilisation =
+              meta && meta.totalDevices > 0 ? meta.onCount / meta.totalDevices : 0;
             // Base color: from cool blue (low load) to warm amber (high load)
             let fillColor = 'rgba(15,23,42,0.55)'; // default vacant
             if (utilisation > 0) {
-              if (utilisation < 0.5) {fillColor = 'rgba(14,165,233,0.1)';} // cool blue
-              else if (utilisation < 1) {fillColor = 'rgba(245,158,11,0.1)';} // warm amber
-              else {fillColor = 'rgba(245,158,11,0.2)';} // hot amber
+              if (utilisation < 0.5) {
+                fillColor = 'rgba(14,165,233,0.1)';
+              } // cool blue
+              else if (utilisation < 1) {
+                fillColor = 'rgba(245,158,11,0.1)';
+              } // warm amber
+              else {
+                fillColor = 'rgba(245,158,11,0.2)';
+              } // hot amber
             }
 
             return (
               <g key={slot.id}>
                 {/* Room walls (masked for doors) */}
                 <rect
-                  x={slot.x} y={slot.y} width={slot.w} height={slot.h} rx="10"
+                  x={slot.x}
+                  y={slot.y}
+                  width={slot.w}
+                  height={slot.h}
+                  rx="10"
                   fill={fillColor}
-                  stroke={hasAnomaly ? 'rgba(239,68,68,0.9)' : (meta?.allOn ? 'rgba(245,158,11,0.8)' : 'rgba(148,163,184,0.4)')}
-                  strokeWidth={hasAnomaly ? "3" : "2.5"}
+                  stroke={
+                    hasAnomaly
+                      ? 'rgba(239,68,68,0.9)'
+                      : meta?.allOn
+                        ? 'rgba(245,158,11,0.8)'
+                        : 'rgba(148,163,184,0.4)'
+                  }
+                  strokeWidth={hasAnomaly ? '3' : '2.5'}
                   mask={`url(#door-mask-${slot.id}-${uid})`}
                   style={{ transition: 'fill 1s ease, stroke 0.5s ease' }}
                 />
-                
+
                 {/* Anomaly heat pulse overlay */}
                 {hasAnomaly && (
                   <motion.rect
-                    x={slot.x + 2} y={slot.y + 2} width={slot.w - 4} height={slot.h - 4} rx="8"
+                    x={slot.x + 2}
+                    y={slot.y + 2}
+                    width={slot.w - 4}
+                    height={slot.h - 4}
+                    rx="8"
                     fill={`url(#anomaly-pulse-${uid})`}
                     animate={{ opacity: [0.3, 1, 0.3] }}
-                    transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+                    transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
                     mask={`url(#door-mask-${slot.id}-${uid})`}
                     pointerEvents="none"
                   />
@@ -174,16 +220,37 @@ export default function OfficeLayout({ devices = [], rooms = [], alerts = [], is
 
                 {/* Door Arc */}
                 <g stroke="rgba(148,163,184,0.7)" strokeWidth="1.5" fill="none">
-                  <line x1={slot.x + slot.w / 2 - 25} y1={slot.y + slot.h} x2={slot.x + slot.w / 2 - 25} y2={slot.y + slot.h + 50} />
-                  <path strokeDasharray="4,4" d={`M ${slot.x + slot.w / 2 + 25} ${slot.y + slot.h} A 50 50 0 0 0 ${slot.x + slot.w / 2 - 25} ${slot.y + slot.h + 50}`} />
+                  <line
+                    x1={slot.x + slot.w / 2 - 25}
+                    y1={slot.y + slot.h}
+                    x2={slot.x + slot.w / 2 - 25}
+                    y2={slot.y + slot.h + 50}
+                  />
+                  <path
+                    strokeDasharray="4,4"
+                    d={`M ${slot.x + slot.w / 2 + 25} ${slot.y + slot.h} A 50 50 0 0 0 ${slot.x + slot.w / 2 - 25} ${slot.y + slot.h + 50}`}
+                  />
                 </g>
 
                 {/* Room label and aggregate stats */}
-                <text x={slot.x + 12} y={slot.y + 22} fill="rgba(226,232,240,0.85)" fontSize="13" fontWeight="600">
+                <text
+                  x={slot.x + 12}
+                  y={slot.y + 22}
+                  fill="rgba(226,232,240,0.85)"
+                  fontSize="13"
+                  fontWeight="600"
+                >
                   {slot.label}
                 </text>
                 {meta && (
-                  <text x={slot.x + slot.w - 12} y={slot.y + 22} fill={hasAnomaly ? 'rgba(239,68,68,0.9)' : 'rgba(148,163,184,0.9)'} fontSize="11" textAnchor="end" fontWeight={hasAnomaly ? 'bold' : 'normal'}>
+                  <text
+                    x={slot.x + slot.w - 12}
+                    y={slot.y + 22}
+                    fill={hasAnomaly ? 'rgba(239,68,68,0.9)' : 'rgba(148,163,184,0.9)'}
+                    fontSize="11"
+                    textAnchor="end"
+                    fontWeight={hasAnomaly ? 'bold' : 'normal'}
+                  >
                     {meta.onCount}/{meta.totalDevices} ON · {Math.round(meta.powerWatts)}W
                   </text>
                 )}
@@ -203,7 +270,12 @@ export default function OfficeLayout({ devices = [], rooms = [], alerts = [], is
                 {slot.id === 'work-room-2' && (
                   <g stroke="#bae6fd" strokeWidth="4" strokeLinecap="square">
                     <line x1={slot.x + 80} y1={slot.y} x2={slot.x + 140} y2={slot.y} />
-                    <line x1={slot.x + slot.w} y1={slot.y + 160} x2={slot.x + slot.w} y2={slot.y + 240} />
+                    <line
+                      x1={slot.x + slot.w}
+                      y1={slot.y + 160}
+                      x2={slot.x + slot.w}
+                      y2={slot.y + 240}
+                    />
                   </g>
                 )}
 
@@ -211,41 +283,139 @@ export default function OfficeLayout({ devices = [], rooms = [], alerts = [], is
                 {slot.id === 'drawing-room' ? (
                   <g className="furniture-drawing-room">
                     {/* Sofa */}
-                    <rect x={slot.x + 20} y={slot.y + 120} width="35" height="120" rx="4" fill="rgba(217,192,154,0.3)" stroke="rgba(217,192,154,0.6)" strokeWidth="1.5" />
-                    <rect x={slot.x + 25} y={slot.y + 125} width="20" height="35" rx="2" fill="rgba(217,192,154,0.4)" />
-                    <rect x={slot.x + 25} y={slot.y + 165} width="20" height="30" rx="2" fill="rgba(217,192,154,0.4)" />
-                    <rect x={slot.x + 25} y={slot.y + 200} width="20" height="35" rx="2" fill="rgba(217,192,154,0.4)" />
-                    
+                    <rect
+                      x={slot.x + 20}
+                      y={slot.y + 120}
+                      width="35"
+                      height="120"
+                      rx="4"
+                      fill="rgba(217,192,154,0.3)"
+                      stroke="rgba(217,192,154,0.6)"
+                      strokeWidth="1.5"
+                    />
+                    <rect
+                      x={slot.x + 25}
+                      y={slot.y + 125}
+                      width="20"
+                      height="35"
+                      rx="2"
+                      fill="rgba(217,192,154,0.4)"
+                    />
+                    <rect
+                      x={slot.x + 25}
+                      y={slot.y + 165}
+                      width="20"
+                      height="30"
+                      rx="2"
+                      fill="rgba(217,192,154,0.4)"
+                    />
+                    <rect
+                      x={slot.x + 25}
+                      y={slot.y + 200}
+                      width="20"
+                      height="35"
+                      rx="2"
+                      fill="rgba(217,192,154,0.4)"
+                    />
+
                     {/* Coffee Table */}
-                    <rect x={slot.x + 80} y={slot.y + 150} width="40" height="60" rx="3" fill="rgba(146,112,85,0.4)" stroke="rgba(146,112,85,0.7)" strokeWidth="1.5" />
-                    
+                    <rect
+                      x={slot.x + 80}
+                      y={slot.y + 150}
+                      width="40"
+                      height="60"
+                      rx="3"
+                      fill="rgba(146,112,85,0.4)"
+                      stroke="rgba(146,112,85,0.7)"
+                      strokeWidth="1.5"
+                    />
+
                     {/* Single Armchair */}
-                    <rect x={slot.x + 30} y={slot.y + 260} width="40" height="35" rx="6" fill="rgba(217,192,154,0.3)" stroke="rgba(217,192,154,0.6)" strokeWidth="1.5" transform={`rotate(-15 ${slot.x + 50} ${slot.y + 277})`} />
-                    
+                    <rect
+                      x={slot.x + 30}
+                      y={slot.y + 260}
+                      width="40"
+                      height="35"
+                      rx="6"
+                      fill="rgba(217,192,154,0.3)"
+                      stroke="rgba(217,192,154,0.6)"
+                      strokeWidth="1.5"
+                      transform={`rotate(-15 ${slot.x + 50} ${slot.y + 277})`}
+                    />
+
                     {/* Plants */}
-                    <circle cx={slot.x + 35} cy={slot.y + 35} r="12" fill="rgba(101,163,13,0.3)" stroke="rgba(101,163,13,0.6)" />
-                    <circle cx={slot.x + slot.w - 35} cy={slot.y + slot.h - 35} r="14" fill="rgba(101,163,13,0.3)" stroke="rgba(101,163,13,0.6)" />
+                    <circle
+                      cx={slot.x + 35}
+                      cy={slot.y + 35}
+                      r="12"
+                      fill="rgba(101,163,13,0.3)"
+                      stroke="rgba(101,163,13,0.6)"
+                    />
+                    <circle
+                      cx={slot.x + slot.w - 35}
+                      cy={slot.y + slot.h - 35}
+                      r="14"
+                      fill="rgba(101,163,13,0.3)"
+                      stroke="rgba(101,163,13,0.6)"
+                    />
                   </g>
                 ) : (
                   <g className="furniture-work-room">
                     {/* 4 Desks Grid */}
                     {[
-                      { dx: 45, dy: 130 }, { dx: 185, dy: 130 },
-                      { dx: 45, dy: 240 }, { dx: 185, dy: 240 }
+                      { dx: 45, dy: 130 },
+                      { dx: 185, dy: 130 },
+                      { dx: 45, dy: 240 },
+                      { dx: 185, dy: 240 }
                     ].map((pos, i) => (
                       <g key={i}>
                         {/* Desk */}
-                        <rect x={slot.x + pos.dx - 30} y={slot.y + pos.dy - 20} width="60" height="40" rx="3" fill="rgba(212,170,123,0.3)" stroke="rgba(212,170,123,0.6)" strokeWidth="1.5" />
+                        <rect
+                          x={slot.x + pos.dx - 30}
+                          y={slot.y + pos.dy - 20}
+                          width="60"
+                          height="40"
+                          rx="3"
+                          fill="rgba(212,170,123,0.3)"
+                          stroke="rgba(212,170,123,0.6)"
+                          strokeWidth="1.5"
+                        />
                         {/* Monitor */}
-                        <rect x={slot.x + pos.dx - 15} y={slot.y + pos.dy - 10} width="30" height="8" rx="1" fill="rgba(30,41,59,0.8)" />
+                        <rect
+                          x={slot.x + pos.dx - 15}
+                          y={slot.y + pos.dy - 10}
+                          width="30"
+                          height="8"
+                          rx="1"
+                          fill="rgba(30,41,59,0.8)"
+                        />
                         {/* Keyboard */}
-                        <rect x={slot.x + pos.dx - 10} y={slot.y + pos.dy + 4} width="20" height="5" rx="0.5" fill="rgba(203,213,225,0.4)" />
+                        <rect
+                          x={slot.x + pos.dx - 10}
+                          y={slot.y + pos.dy + 4}
+                          width="20"
+                          height="5"
+                          rx="0.5"
+                          fill="rgba(203,213,225,0.4)"
+                        />
                         {/* Chair */}
-                        <circle cx={slot.x + pos.dx} cy={slot.y + pos.dy + 28} r="8" fill="rgba(71,85,105,0.6)" stroke="rgba(15,23,42,0.8)" />
+                        <circle
+                          cx={slot.x + pos.dx}
+                          cy={slot.y + pos.dy + 28}
+                          r="8"
+                          fill="rgba(71,85,105,0.6)"
+                          stroke="rgba(15,23,42,0.8)"
+                        />
                       </g>
                     ))}
                     {/* Plant */}
-                    <circle cx={slot.x + 30} cy={slot.y + 35} r="10" fill="rgba(101,163,13,0.2)" stroke="rgba(101,163,13,0.5)" />
+                    <circle
+                      cx={slot.x + 30}
+                      cy={slot.y + 35}
+                      r="10"
+                      fill="rgba(101,163,13,0.2)"
+                      stroke="rgba(101,163,13,0.5)"
+                    />
                   </g>
                 )}
 
@@ -269,7 +439,9 @@ export default function OfficeLayout({ devices = [], rooms = [], alerts = [], is
                       {/* Large ambient bloom */}
                       {on && (
                         <motion.circle
-                          cx={cx} cy={cy} r={isHovered ? 44 : 36}
+                          cx={cx}
+                          cy={cy}
+                          r={isHovered ? 44 : 36}
                           fill={`url(#light-bloom-${uid})`}
                           initial={{ opacity: 0 }}
                           animate={{ opacity: [0.6, 1, 0.6] }}
@@ -280,7 +452,9 @@ export default function OfficeLayout({ devices = [], rooms = [], alerts = [], is
                       {/* Expanding halo ring 1 */}
                       {on && (
                         <motion.circle
-                          cx={cx} cy={cy} r="10"
+                          cx={cx}
+                          cy={cy}
+                          r="10"
                           fill="none"
                           stroke="rgba(253,224,71,0.5)"
                           strokeWidth="1.5"
@@ -293,26 +467,42 @@ export default function OfficeLayout({ devices = [], rooms = [], alerts = [], is
                       {/* Expanding halo ring 2 (offset) */}
                       {on && (
                         <motion.circle
-                          cx={cx} cy={cy} r="10"
+                          cx={cx}
+                          cy={cy}
+                          r="10"
                           fill="none"
                           stroke="rgba(253,224,71,0.3)"
                           strokeWidth="1"
                           initial={{ r: 10, opacity: 0.5 }}
                           animate={{ r: 42, opacity: 0 }}
-                          transition={{ duration: 2, repeat: Infinity, ease: 'easeOut', delay: 0.7 }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: 'easeOut',
+                            delay: 0.7
+                          }}
                         />
                       )}
 
                       {/* Bulb body */}
                       <motion.circle
-                        cx={cx} cy={cy}
+                        cx={cx}
+                        cy={cy}
                         r={isHovered ? 9 : 7}
                         fill={on ? '#fde047' : '#334155'}
                         stroke={on ? 'rgba(253,224,71,0.8)' : 'rgba(148,163,184,0.3)'}
                         strokeWidth="2"
-                        animate={on ? {
-                          filter: ['drop-shadow(0 0 4px rgba(253,224,71,0.6))', 'drop-shadow(0 0 10px rgba(253,224,71,0.9))', 'drop-shadow(0 0 4px rgba(253,224,71,0.6))']
-                        } : {}}
+                        animate={
+                          on
+                            ? {
+                                filter: [
+                                  'drop-shadow(0 0 4px rgba(253,224,71,0.6))',
+                                  'drop-shadow(0 0 10px rgba(253,224,71,0.9))',
+                                  'drop-shadow(0 0 4px rgba(253,224,71,0.6))'
+                                ]
+                              }
+                            : {}
+                        }
                         transition={{ duration: 2.2, repeat: on ? Infinity : 0 }}
                       />
 
@@ -322,9 +512,11 @@ export default function OfficeLayout({ devices = [], rooms = [], alerts = [], is
                       )}
 
                       <text
-                        x={cx} y={cy + (isHovered ? 26 : 22)}
+                        x={cx}
+                        y={cy + (isHovered ? 26 : 22)}
                         fill={isHovered ? '#fff' : 'rgba(148,163,184,0.85)'}
-                        fontSize="9" textAnchor="middle"
+                        fontSize="9"
+                        textAnchor="middle"
                         className="pointer-events-none"
                       >
                         L{idx + 1}
@@ -343,7 +535,7 @@ export default function OfficeLayout({ devices = [], rooms = [], alerts = [], is
                   const cy = slot.y + pos.y;
                   const isHovered = hoverId === id;
                   // Faster spin for higher wattage
-                  const spinDuration = Math.max(0.55, 1.3 - (wattage / 220));
+                  const spinDuration = Math.max(0.55, 1.3 - wattage / 220);
 
                   return (
                     <g
@@ -356,7 +548,9 @@ export default function OfficeLayout({ devices = [], rooms = [], alerts = [], is
                       {/* Outer glow ring when on */}
                       {on && (
                         <motion.circle
-                          cx={cx} cy={cy} r={isHovered ? 34 : 30}
+                          cx={cx}
+                          cy={cy}
+                          r={isHovered ? 34 : 30}
                           fill={`url(#fan-glow-${uid})`}
                           animate={{ opacity: [0.4, 0.8, 0.4] }}
                           transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
@@ -365,7 +559,8 @@ export default function OfficeLayout({ devices = [], rooms = [], alerts = [], is
 
                       {/* Fan housing circle */}
                       <circle
-                        cx={cx} cy={cy}
+                        cx={cx}
+                        cy={cy}
                         r={isHovered ? 27 : 24}
                         fill={isHovered ? 'rgba(30,41,59,0.95)' : 'rgba(15,23,42,0.75)'}
                         stroke={on ? 'rgba(56,189,248,0.85)' : 'rgba(100,116,139,0.4)'}
@@ -386,14 +581,18 @@ export default function OfficeLayout({ devices = [], rooms = [], alerts = [], is
                         {[0, 120, 240].map((angle) => (
                           <g key={angle} transform={`rotate(${angle} ${cx} ${cy})`}>
                             <ellipse
-                              cx={cx} cy={cy - 10}
-                              rx="5" ry="9"
+                              cx={cx}
+                              cy={cy - 10}
+                              rx="5"
+                              ry="9"
                               fill={on ? 'rgba(56,189,248,0.88)' : 'rgba(100,116,139,0.55)'}
                             />
                             {/* Blade sheen */}
                             <ellipse
-                              cx={cx - 1.2} cy={cy - 12}
-                              rx="1.8" ry="4"
+                              cx={cx - 1.2}
+                              cy={cy - 12}
+                              rx="1.8"
+                              ry="4"
                               fill={on ? 'rgba(255,255,255,0.35)' : 'transparent'}
                             />
                           </g>
@@ -401,14 +600,21 @@ export default function OfficeLayout({ devices = [], rooms = [], alerts = [], is
 
                         {/* Center hub */}
                         <circle cx={cx} cy={cy} r="4.5" fill={on ? '#38bdf8' : '#475569'} />
-                        <circle cx={cx} cy={cy} r="2" fill={on ? 'rgba(255,255,255,0.65)' : 'rgba(255,255,255,0.1)'} />
+                        <circle
+                          cx={cx}
+                          cy={cy}
+                          r="2"
+                          fill={on ? 'rgba(255,255,255,0.65)' : 'rgba(255,255,255,0.1)'}
+                        />
                       </motion.g>
 
                       {/* F label */}
                       <text
-                        x={cx} y={cy + (isHovered ? 42 : 38)}
+                        x={cx}
+                        y={cy + (isHovered ? 42 : 38)}
                         fill={isHovered ? '#fff' : 'rgba(148,163,184,0.85)'}
-                        fontSize="9" textAnchor="middle"
+                        fontSize="9"
+                        textAnchor="middle"
                         className="pointer-events-none"
                       >
                         F{idx + 1}
@@ -420,7 +626,14 @@ export default function OfficeLayout({ devices = [], rooms = [], alerts = [], is
             );
           })}
 
-          <text x="430" y="450" fill="rgba(148,163,184,0.6)" fontSize="10" textAnchor="middle" letterSpacing="3">
+          <text
+            x="430"
+            y="450"
+            fill="rgba(148,163,184,0.6)"
+            fontSize="10"
+            textAnchor="middle"
+            letterSpacing="3"
+          >
             — MAIN CORRIDOR —
           </text>
 
@@ -431,20 +644,32 @@ export default function OfficeLayout({ devices = [], rooms = [], alerts = [], is
             {/* Right door jamb */}
             <line x1="460" y1="468" x2="460" y2="475" />
             {/* Door leaf arc — sweeps outward (below the wall, CCW from right to left jamb) */}
-            <path
-              strokeDasharray="4,3"
-              d="M 400 470 A 60 60 0 0 0 460 470"
-            />
+            <path strokeDasharray="4,3" d="M 400 470 A 60 60 0 0 0 460 470" />
           </g>
 
           {/* ENTRY arrow and label — positioned below the outward-swinging door arc */}
           <g>
             {/* Arrow shaft coming up toward the door */}
-            <line x1="430" y1="515" x2="430" y2="496" stroke="rgba(148,163,184,0.9)" strokeWidth="2" />
+            <line
+              x1="430"
+              y1="515"
+              x2="430"
+              y2="496"
+              stroke="rgba(148,163,184,0.9)"
+              strokeWidth="2"
+            />
             {/* Arrowhead pointing toward the door */}
             <polygon points="430,490 425,500 435,500" fill="rgba(148,163,184,0.9)" />
             {/* ENTRY text */}
-            <text x="430" y="512" fill="rgba(226,232,240,0.85)" fontSize="11" textAnchor="middle" fontWeight="700" letterSpacing="3">
+            <text
+              x="430"
+              y="512"
+              fill="rgba(226,232,240,0.85)"
+              fontSize="11"
+              textAnchor="middle"
+              fontWeight="700"
+              letterSpacing="3"
+            >
               ENTRY
             </text>
           </g>
@@ -485,17 +710,23 @@ export default function OfficeLayout({ devices = [], rooms = [], alerts = [], is
 
                 {/* Animated icon in modal */}
                 <div className="mb-4 flex justify-center">
-                  <div className={`grid h-16 w-16 place-items-center rounded-2xl ${
-                    selectedDevice.status === 'on'
-                      ? selectedDevice.type === 'fan'
-                        ? 'bg-sky-500/15 shadow-[0_0_24px_rgba(56,189,248,0.3)]'
-                        : 'bg-yellow-400/15 shadow-[0_0_24px_rgba(253,224,71,0.3)]'
-                      : 'bg-white/5'
-                  }`}>
-                    {selectedDevice.type === 'fan'
-                      ? <FanModalIcon on={selectedDevice.status === 'on'} wattage={selectedDevice.wattage} />
-                      : <LightModalIcon on={selectedDevice.status === 'on'} />
-                    }
+                  <div
+                    className={`grid h-16 w-16 place-items-center rounded-2xl ${
+                      selectedDevice.status === 'on'
+                        ? selectedDevice.type === 'fan'
+                          ? 'bg-sky-500/15 shadow-[0_0_24px_rgba(56,189,248,0.3)]'
+                          : 'bg-yellow-400/15 shadow-[0_0_24px_rgba(253,224,71,0.3)]'
+                        : 'bg-white/5'
+                    }`}
+                  >
+                    {selectedDevice.type === 'fan' ? (
+                      <FanModalIcon
+                        on={selectedDevice.status === 'on'}
+                        wattage={selectedDevice.wattage}
+                      />
+                    ) : (
+                      <LightModalIcon on={selectedDevice.status === 'on'} />
+                    )}
                   </div>
                 </div>
 
@@ -549,7 +780,9 @@ export default function OfficeLayout({ devices = [], rooms = [], alerts = [], is
               >
                 {hoverDevice.status}
               </motion.span>
-              <span className="text-slate-400">· {hoverDevice.status === 'on' ? hoverDevice.wattage : 0}W</span>
+              <span className="text-slate-400">
+                · {hoverDevice.status === 'on' ? hoverDevice.wattage : 0}W
+              </span>
             </div>
           </motion.div>
         )}
@@ -584,8 +817,16 @@ function FanModalIcon({ on, wattage = 75 }) {
   return (
     <svg viewBox="0 0 48 48" width="48" height="48">
       {on && (
-        <motion.circle cx="24" cy="24" r="22" fill="none" stroke="rgba(56,189,248,0.3)" strokeWidth="1"
-          animate={{ opacity: [0.3, 0.7, 0.3] }} transition={{ duration: 1.6, repeat: Infinity }} />
+        <motion.circle
+          cx="24"
+          cy="24"
+          r="22"
+          fill="none"
+          stroke="rgba(56,189,248,0.3)"
+          strokeWidth="1"
+          animate={{ opacity: [0.3, 0.7, 0.3] }}
+          transition={{ duration: 1.6, repeat: Infinity }}
+        />
       )}
       <motion.g
         style={{ transformOrigin: '24px 24px' }}
@@ -594,12 +835,29 @@ function FanModalIcon({ on, wattage = 75 }) {
       >
         {[0, 120, 240].map((angle) => (
           <g key={angle} transform={`rotate(${angle} 24 24)`}>
-            <ellipse cx="24" cy="13" rx="6.5" ry="11" fill={on ? 'rgba(56,189,248,0.9)' : 'rgba(100,116,139,0.5)'} />
-            <ellipse cx="22.5" cy="10" rx="2.5" ry="5" fill={on ? 'rgba(255,255,255,0.3)' : 'transparent'} />
+            <ellipse
+              cx="24"
+              cy="13"
+              rx="6.5"
+              ry="11"
+              fill={on ? 'rgba(56,189,248,0.9)' : 'rgba(100,116,139,0.5)'}
+            />
+            <ellipse
+              cx="22.5"
+              cy="10"
+              rx="2.5"
+              ry="5"
+              fill={on ? 'rgba(255,255,255,0.3)' : 'transparent'}
+            />
           </g>
         ))}
         <circle cx="24" cy="24" r="5.5" fill={on ? '#38bdf8' : '#475569'} />
-        <circle cx="24" cy="24" r="2.5" fill={on ? 'rgba(255,255,255,0.65)' : 'rgba(255,255,255,0.1)'} />
+        <circle
+          cx="24"
+          cy="24"
+          r="2.5"
+          fill={on ? 'rgba(255,255,255,0.65)' : 'rgba(255,255,255,0.1)'}
+        />
       </motion.g>
     </svg>
   );
@@ -611,15 +869,34 @@ function LightModalIcon({ on }) {
     <svg viewBox="0 0 48 48" width="48" height="48" style={{ overflow: 'visible' }}>
       {on && (
         <>
-          <motion.circle cx="24" cy="20" r="14" fill="none" stroke="rgba(253,224,71,0.4)" strokeWidth="1.5"
-            initial={{ r: 14, opacity: 0.8 }} animate={{ r: 28, opacity: 0 }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'easeOut' }} />
-          <motion.circle cx="24" cy="20" r="14" fill="none" stroke="rgba(253,224,71,0.25)" strokeWidth="1"
-            initial={{ r: 14, opacity: 0.6 }} animate={{ r: 38, opacity: 0 }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'easeOut', delay: 0.8 }} />
+          <motion.circle
+            cx="24"
+            cy="20"
+            r="14"
+            fill="none"
+            stroke="rgba(253,224,71,0.4)"
+            strokeWidth="1.5"
+            initial={{ r: 14, opacity: 0.8 }}
+            animate={{ r: 28, opacity: 0 }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeOut' }}
+          />
+          <motion.circle
+            cx="24"
+            cy="20"
+            r="14"
+            fill="none"
+            stroke="rgba(253,224,71,0.25)"
+            strokeWidth="1"
+            initial={{ r: 14, opacity: 0.6 }}
+            animate={{ r: 38, opacity: 0 }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeOut', delay: 0.8 }}
+          />
         </>
       )}
-      <motion.circle cx="24" cy="20" r="12"
+      <motion.circle
+        cx="24"
+        cy="20"
+        r="12"
         fill={on ? '#fde047' : '#334155'}
         stroke={on ? 'rgba(253,224,71,0.7)' : 'rgba(100,116,139,0.3)'}
         strokeWidth="2"
@@ -627,8 +904,22 @@ function LightModalIcon({ on }) {
         transition={{ duration: 2, repeat: on ? Infinity : 0 }}
       />
       {on && <circle cx="21" cy="17" r="4" fill="rgba(255,255,255,0.6)" />}
-      <rect x="20" y="33" width="8" height="3" rx="1.5" fill={on ? 'rgba(253,224,71,0.5)' : 'rgba(100,116,139,0.4)'} />
-      <rect x="21" y="37" width="6" height="3" rx="1.5" fill={on ? 'rgba(253,224,71,0.4)' : 'rgba(100,116,139,0.3)'} />
+      <rect
+        x="20"
+        y="33"
+        width="8"
+        height="3"
+        rx="1.5"
+        fill={on ? 'rgba(253,224,71,0.5)' : 'rgba(100,116,139,0.4)'}
+      />
+      <rect
+        x="21"
+        y="37"
+        width="6"
+        height="3"
+        rx="1.5"
+        fill={on ? 'rgba(253,224,71,0.4)' : 'rgba(100,116,139,0.3)'}
+      />
     </svg>
   );
 }

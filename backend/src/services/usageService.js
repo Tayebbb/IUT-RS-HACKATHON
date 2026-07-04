@@ -44,10 +44,10 @@ function buildUsageSnapshot(deviceStore, energyStore) {
   const highestName = highest.roomId
     ? (rooms.find((r) => r.id === highest.roomId)?.name ?? null)
     : null;
-    
+
   const activeDevs = powerService.activeDevices(devices);
   const inactiveCount = powerService.inactiveDevicesCount(devices);
-  
+
   const energy = energyService.snapshot(energyStore);
   const tariff = config.tariffBdtPerKwh || 7.0;
   const energyCostBdt = Number((energy.energyTodayKwh * tariff).toFixed(2));
@@ -63,7 +63,7 @@ function buildUsageSnapshot(deviceStore, energyStore) {
     powerByDevice: perDevice,
     activeDevicesCount: activeDevs.length,
     inactiveDevicesCount: inactiveCount,
-    activeDevices: activeDevs.map(d => ({
+    activeDevices: activeDevs.map((d) => ({
       id: d.id,
       label: d.label,
       room: d.room,
@@ -94,7 +94,9 @@ class UsageService {
    * @param {EnergyStore} deps.energyStore
    */
   constructor({ deviceStore, energyStore }) {
-    if (!deviceStore || !energyStore) {throw new Error('UsageService requires deviceStore and energyStore');}
+    if (!deviceStore || !energyStore) {
+      throw new Error('UsageService requires deviceStore and energyStore');
+    }
     this._deviceStore = deviceStore;
     this._energyStore = energyStore;
   }

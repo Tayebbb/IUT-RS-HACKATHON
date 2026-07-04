@@ -1,0 +1,105 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ─── Node lint / format / build ──────────────────────────────────────────
+  node:
+    name: Node ${{ matrix.node }} · lint · format · build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [20, 22]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - name: Install dependencies (workspaces)
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Prettier check
+        run: npm run format:check
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Upload frontend build artifact
+        if: matrix.node == '20'
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist
+          if-no-files-found: error
+          retention-days: 7
+
+  # ─── Docker image build validation (no push) ─────────────────────────────
+  docker:
+    name: Docker build · ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    needs: node
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: backend
+            context: ./backend
+            file: ./backend/Dockerfile
+            build-args: ''
+          - service: bot
+            context: ./bot
+            file: ./bot/Dockerfile
+            build-args: ''
+          - service: frontend
+            context: ./frontend
+            file: ./frontend/Dockerfile
+            build-args: |
+              VITE_BACKEND_URL=http://localhost:4000
+              VITE_SOCKET_URL=http://localhost:4000
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image (no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.file }}
+          push: false
+          load: true
+          tags: opm-${{ matrix.service }}:ci
+          build-args: ${{ matrix.build-args }}
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
+
+  # ─── docker-compose sanity check ─────────────────────────────────────────
+  compose:
+    name: docker compose config
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate compose file
+        run: docker compose -f docker-compose.yml config --quiet

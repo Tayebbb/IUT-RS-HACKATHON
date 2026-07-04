@@ -28,9 +28,7 @@ function createDevicesRouter({ deviceStore, deviceService }) {
    * POST /api/devices/:id/toggle
    */
   router.post('/:id/toggle', (req, res) => {
-    const updated = deviceService
-      ? deviceService.toggle(req.params.id)
-      : null;
+    const updated = deviceService ? deviceService.toggle(req.params.id) : null;
     if (!updated) {
       return error(res, 'device_not_found', 404);
     }

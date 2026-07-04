@@ -120,7 +120,7 @@ class AlertStore extends EventEmitter {
     };
     this._activeBySig.set(signature, alert);
     this._byId.set(alert.id, alert);
-    
+
     // Garbage collection for memory safety
     if (this._byId.size > 500) {
       const oldestKey = this._byId.keys().next().value;
@@ -169,7 +169,9 @@ class AlertStore extends EventEmitter {
    */
   attachInsight(signature, insightText) {
     const alert = this._activeBySig.get(signature);
-    if (!alert) {return;}
+    if (!alert) {
+      return;
+    }
     alert.aiInsight = insightText;
     alert.updatedAt = new Date().toISOString();
     this.emitChanged();

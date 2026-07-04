@@ -1,8 +1,9 @@
 <div align="center">
   <img src="https://via.placeholder.com/120x120.png?text=OPM" alt="Logo" width="120" height="120">
-  
-  # Office Power Monitor
-  **Real-Time Office Electricity & IoT Management Platform**
+
+# Office Power Monitor
+
+**Real-Time Office Electricity & IoT Management Platform**
 
 [![Node.js](https://img.shields.io/badge/Node.js-18+-339933?logo=node.js&logoColor=white)](#)
 [![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](#)
@@ -65,8 +66,8 @@ anomalous usage.
 > _(Hackathon Note: Replace these placeholders with actual screenshots prior to
 > presentation)_
 
-| Main Dashboard | Interactive Floor Plan | Discord Bot (Embeds & Alerts) |
-| :---: | :---: | :---: |
+|                           Main Dashboard                            |                                          Interactive Floor Plan                                           |                       Discord Bot (Embeds & Alerts)                       |
+| :-----------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------: |
 | <img src="docs/media/dashboard.png" alt="Dashboard UI" width="400"> | <img src="https://via.placeholder.com/400x250.png?text=Floor+Plan" alt="Interactive SVG Map" width="400"> | <img src="docs/media/discord.png" alt="Discord Integrations" width="400"> |
 
 ### 🎬 End-to-End Demo (Shared Backend Proof)

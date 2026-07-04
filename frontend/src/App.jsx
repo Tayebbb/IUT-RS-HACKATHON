@@ -43,7 +43,9 @@ export default function App() {
   };
 
   const handleDeviceToggle = (deviceId) => {
-    if (!isSimMode) {return;}
+    if (!isSimMode) {
+      return;
+    }
     setSimulatedDevices((prev) =>
       prev.map((d) => {
         if (d.id === deviceId) {
@@ -63,17 +65,33 @@ export default function App() {
           <button
             onClick={handleToggleSimMode}
             className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 ${
-              isSimMode ? 'bg-blue-600 text-white shadow-lg' : 'bg-white/5 text-slate-300 hover:bg-white/10'
+              isSimMode
+                ? 'bg-blue-600 text-white shadow-lg'
+                : 'bg-white/5 text-slate-300 hover:bg-white/10'
             }`}
           >
             {isSimMode ? (
               <>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
+                  ></path>
+                </svg>
                 Exit Simulation
               </>
             ) : (
               <>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
+                  ></path>
+                </svg>
                 Digital Twin
               </>
             )}
@@ -90,12 +108,12 @@ export default function App() {
               ))}
             </section>
 
-            <OfficeLayout 
-              devices={isSimMode ? simulatedDevices : devices} 
-              rooms={rooms} 
-              alerts={alerts} 
-              isSimMode={isSimMode} 
-              onDeviceToggle={handleDeviceToggle} 
+            <OfficeLayout
+              devices={isSimMode ? simulatedDevices : devices}
+              rooms={rooms}
+              alerts={alerts}
+              isSimMode={isSimMode}
+              onDeviceToggle={handleDeviceToggle}
             />
 
             <PowerBreakdown usage={usage} rooms={rooms} />
@@ -107,13 +125,13 @@ export default function App() {
         <footer className="mt-10 text-center text-xs text-slate-500">
           Office Power Monitor · Realtime IoT telemetry · {connected ? 'Connected' : 'Offline'}
         </footer>
-        
+
         <DemoControls />
       </div>
 
       {/* Eco-Mode notification toasts — rendered outside main layout flow */}
       <EcoToast notifications={visibleEcoNotifications} onDismiss={handleDismiss} />
-      
+
       {/* Simulation Panel overlay */}
       {isSimMode && <SimulationPanel simulatedDevices={simulatedDevices} />}
     </div>

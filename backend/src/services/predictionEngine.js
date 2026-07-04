@@ -11,7 +11,7 @@ const { isOfficeHours } = require('../simulator/officeHours');
 class PredictionEngine {
   constructor({ now = Date.now } = {}) {
     this._now = now;
-    
+
     // Logistic Regression weights (pre-calibrated heuristic)
     this._weights = {
       bias: -2.0,
@@ -38,19 +38,23 @@ class PredictionEngine {
   predictOccupancy(room) {
     const nowMs = this._now();
     const officeHoursActive = isOfficeHours(nowMs) ? 1.0 : 0.0;
-    
+
     let fanOnCount = 0;
     let lightOnCount = 0;
-    
+
     // Find how long it's been since the most recently changed device in this room
     let mostRecentChangeMs = 0;
 
-    room.devices.forEach(d => {
+    room.devices.forEach((d) => {
       if (d.status === 'on') {
-        if (d.type === 'fan') {fanOnCount++;}
-        if (d.type === 'light') {lightOnCount++;}
+        if (d.type === 'fan') {
+          fanOnCount++;
+        }
+        if (d.type === 'light') {
+          lightOnCount++;
+        }
       }
-      
+
       const changedMs = new Date(d.lastChanged).getTime();
       if (changedMs > mostRecentChangeMs) {
         mostRecentChangeMs = changedMs;
@@ -58,15 +62,18 @@ class PredictionEngine {
     });
 
     // If no devices exist or ever changed, default to empty
-    if (mostRecentChangeMs === 0) {return 0.0;}
+    if (mostRecentChangeMs === 0) {
+      return 0.0;
+    }
 
     const minutesSinceChange = (nowMs - mostRecentChangeMs) / 60000;
 
-    const z = this._weights.bias
-      + (fanOnCount * this._weights.fanOn)
-      + (lightOnCount * this._weights.lightOn)
-      + (minutesSinceChange * this._weights.minutesSinceChange)
-      + (officeHoursActive * this._weights.officeHours);
+    const z =
+      this._weights.bias +
+      fanOnCount * this._weights.fanOn +
+      lightOnCount * this._weights.lightOn +
+      minutesSinceChange * this._weights.minutesSinceChange +
+      officeHoursActive * this._weights.officeHours;
 
     return this._sigmoid(z);
   }
@@ -80,10 +87,12 @@ class PredictionEngine {
   predictPotentialSavings(room) {
     // Total watts currently consumed by the room
     const currentPowerW = room.devices
-      .filter(d => d.status === 'on')
+      .filter((d) => d.status === 'on')
       .reduce((sum, d) => sum + (d.wattage || 0), 0);
-      
-    if (currentPowerW === 0) {return 0.0;}
+
+    if (currentPowerW === 0) {
+      return 0.0;
+    }
 
     const now = new Date(this._now());
     const currentHour = now.getHours() + now.getMinutes() / 60;

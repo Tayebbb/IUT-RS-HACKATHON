@@ -31,8 +31,25 @@ class SocketBroadcaster {
    * @param {import('../services/predictionEngine').PredictionEngine} deps.predictionEngine
    * @param {number} [deps.heartbeatMs=5000]
    */
-  constructor({ io, deviceStore, energyStore, alertStore, incidentAggregator, roomSampleBuffer, predictionEngine, heartbeatMs }) {
-    if (!io || !deviceStore || !energyStore || !alertStore || !incidentAggregator || !roomSampleBuffer || !predictionEngine) {
+  constructor({
+    io,
+    deviceStore,
+    energyStore,
+    alertStore,
+    incidentAggregator,
+    roomSampleBuffer,
+    predictionEngine,
+    heartbeatMs
+  }) {
+    if (
+      !io ||
+      !deviceStore ||
+      !energyStore ||
+      !alertStore ||
+      !incidentAggregator ||
+      !roomSampleBuffer ||
+      !predictionEngine
+    ) {
       throw new Error('SocketBroadcaster missing required deps');
     }
     this._io = io;
@@ -105,7 +122,10 @@ class SocketBroadcaster {
     this._energyStore.record(totalW);
 
     const perRoomWatts = powerService.powerByRoom(devices);
-    const roomSnapshots = Object.entries(perRoomWatts).map(([id, powerWatts]) => ({ id, powerWatts }));
+    const roomSnapshots = Object.entries(perRoomWatts).map(([id, powerWatts]) => ({
+      id,
+      powerWatts
+    }));
     this._roomSampleBuffer.record(roomSnapshots);
   }
 
@@ -119,7 +139,7 @@ class SocketBroadcaster {
   /** @private */
   _getRoomsWithPredictions() {
     const rooms = roomService.summarizeRooms(this._deviceStore, this._roomSampleBuffer);
-    return rooms.map(room => ({
+    return rooms.map((room) => ({
       ...room,
       predictions: this._predictionEngine.getRoomPredictions(room)
     }));

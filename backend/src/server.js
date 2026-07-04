@@ -41,7 +41,7 @@ function bootstrap() {
     apiToken: config.hfApiToken,
     model: config.hfModel
   });
-  
+
   const predictionEngine = new PredictionEngine();
 
   const alertEngine = new AlertEngine({ deviceStore, alertStore, roomSampleBuffer, hfService });
