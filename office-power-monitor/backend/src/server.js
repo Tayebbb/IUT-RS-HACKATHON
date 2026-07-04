@@ -13,6 +13,7 @@ const { IncidentAggregator } = require('./incidents');
 const { Simulator } = require('./simulator');
 const { registerRoutes } = require('./routes');
 const { SocketBroadcaster } = require('./sockets');
+const { HuggingFaceService } = require('./services/huggingFaceService');
 const {
   DeviceService,
   RoomService,
@@ -34,7 +35,12 @@ function bootstrap() {
     cors: { origin: config.corsOrigin, methods: ['GET', 'POST'] }
   });
 
-  const alertEngine = new AlertEngine({ deviceStore, alertStore, roomSampleBuffer });
+  const hfService = new HuggingFaceService({
+    apiToken: config.hfApiToken,
+    model: config.hfModel
+  });
+
+  const alertEngine = new AlertEngine({ deviceStore, alertStore, roomSampleBuffer, hfService });
   const incidentAggregator = new IncidentAggregator({ alertStore });
   const broadcaster = new SocketBroadcaster({
     io,

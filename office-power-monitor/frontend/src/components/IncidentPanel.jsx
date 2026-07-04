@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatRelative, severityClasses } from '../lib/format.js';
+import AIInsightCard from './AIInsightCard.jsx';
 
 /**
  * Right-column panel showing active incidents (grouped alerts) and
@@ -21,7 +22,7 @@ export default function IncidentPanel({ incidents, alerts }) {
       className="glass flex h-full flex-col p-5"
     >
       <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-300">
-        Incidents & Alerts
+        Incidents &amp; Alerts
       </h2>
 
       <section className="relative mt-4">
@@ -87,6 +88,14 @@ export default function IncidentPanel({ incidents, alerts }) {
                       {a.status}
                     </span>
                   </div>
+
+                  {/* AI Insight — shown for power_anomaly alerts (pending or complete) */}
+                  {a.status === 'active' && a.kind === 'power_anomaly' && (
+                    <AIInsightCard
+                      insight={a.aiInsight}
+                      isPowerAnomaly={true}
+                    />
+                  )}
                 </motion.li>
               ))}
             </AnimatePresence>

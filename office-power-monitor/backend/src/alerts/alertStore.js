@@ -19,6 +19,7 @@ const { EventEmitter } = require('events');
  * @property {string} updatedAt   ISO
  * @property {string|null} resolvedAt ISO
  * @property {boolean} resolved
+ * @property {string|null} aiInsight   AI-generated natural language explanation (null while pending)
  */
 
 /**
@@ -114,7 +115,8 @@ class AlertStore extends EventEmitter {
       resolved: false,
       createdAt: iso,
       updatedAt: iso,
-      resolvedAt: null
+      resolvedAt: null,
+      aiInsight: null
     };
     this._activeBySig.set(signature, alert);
     this._byId.set(alert.id, alert);
@@ -157,6 +159,20 @@ class AlertStore extends EventEmitter {
   /** Emit the aggregate change notification. */
   emitChanged() {
     this.emit('alerts:changed', this.getAll());
+  }
+
+  /**
+   * Attach an AI-generated insight to an active alert by its signature.
+   * Silently ignored if the alert is no longer active (e.g. already resolved).
+   * @param {string} signature
+   * @param {string} insightText
+   */
+  attachInsight(signature, insightText) {
+    const alert = this._activeBySig.get(signature);
+    if (!alert) return;
+    alert.aiInsight = insightText;
+    alert.updatedAt = new Date().toISOString();
+    this.emitChanged();
   }
 }
 

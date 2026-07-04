@@ -24,16 +24,18 @@ class AlertEngine {
    * @param {DeviceStore} deps.deviceStore
    * @param {AlertStore}  deps.alertStore
    * @param {import('../store/roomSampleBuffer').RoomSampleBuffer} [deps.roomSampleBuffer]
+   * @param {import('../services/huggingFaceService').HuggingFaceService} [deps.hfService]
    * @param {() => number} [deps.now]
    * @param {number} [deps.evaluateEveryMs=10000]
    */
-  constructor({ deviceStore, alertStore, roomSampleBuffer, now, evaluateEveryMs }) {
+  constructor({ deviceStore, alertStore, roomSampleBuffer, hfService, now, evaluateEveryMs }) {
     if (!deviceStore || !alertStore) {
       throw new Error('AlertEngine requires deviceStore + alertStore');
     }
     this._devices = deviceStore;
     this._alerts = alertStore;
     this._roomSampleBuffer = roomSampleBuffer;
+    this._hfService = hfService || null;
     this._now = now || Date.now;
     this._evaluateEveryMs = evaluateEveryMs ?? 10_000;
     /** @type {Map<string, number>} room id → epoch ms when room went all-on */
@@ -193,6 +195,30 @@ class AlertEngine {
             });
             if (opened) {
               mutated = true;
+              // Fire-and-forget: generate AI insight asynchronously — don't block evaluate()
+              if (this._hfService) {
+                const activeDevices = room.devices
+                  .filter(d => d.status === 'on')
+                  .map(d => `${d.label} (${d.wattage}W)`);
+                this._hfService.generateInsight({
+                  signature: sig,
+                  roomName: room.name,
+                  currentW: latest,
+                  baselineW: mean,
+                  deviationPct: deviation,
+                  activeDevices,
+                  isOfficeHours: isOfficeHours(nowMs),
+                  energyCostBdt: 0, // placeholder; cost injected below when available
+                  tariff: config.tariffBdtPerKwh
+                }).then(insight => {
+                  if (insight) {
+                    logger.info('[HuggingFace] Insight attached', { room: room.id, length: insight.length });
+                    this._alerts.attachInsight(sig, insight);
+                  }
+                }).catch(err => {
+                  logger.warn('[HuggingFace] Insight failed', { error: err.message });
+                });
+              }
             }
           }
         }
