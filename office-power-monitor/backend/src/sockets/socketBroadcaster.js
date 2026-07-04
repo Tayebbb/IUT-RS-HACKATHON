@@ -28,10 +28,11 @@ class SocketBroadcaster {
    * @param {import('../alerts/alertStore').AlertStore} deps.alertStore
    * @param {import('../incidents/incidentAggregator').IncidentAggregator} deps.incidentAggregator
    * @param {import('../store/roomSampleBuffer').RoomSampleBuffer} deps.roomSampleBuffer
+   * @param {import('../services/predictionEngine').PredictionEngine} deps.predictionEngine
    * @param {number} [deps.heartbeatMs=5000]
    */
-  constructor({ io, deviceStore, energyStore, alertStore, incidentAggregator, roomSampleBuffer, heartbeatMs }) {
-    if (!io || !deviceStore || !energyStore || !alertStore || !incidentAggregator || !roomSampleBuffer) {
+  constructor({ io, deviceStore, energyStore, alertStore, incidentAggregator, roomSampleBuffer, predictionEngine, heartbeatMs }) {
+    if (!io || !deviceStore || !energyStore || !alertStore || !incidentAggregator || !roomSampleBuffer || !predictionEngine) {
       throw new Error('SocketBroadcaster missing required deps');
     }
     this._io = io;
@@ -40,6 +41,7 @@ class SocketBroadcaster {
     this._alertStore = alertStore;
     this._incidents = incidentAggregator;
     this._roomSampleBuffer = roomSampleBuffer;
+    this._predictionEngine = predictionEngine;
     this._heartbeatMs = heartbeatMs ?? 5000;
     /** @type {NodeJS.Timeout|null} */
     this._heartbeat = null;
@@ -77,7 +79,7 @@ class SocketBroadcaster {
       logger.info('Socket connected', { id: socket.id });
       // Send full initial snapshot so late joiners don't wait for events.
       socket.emit('devices:update', this._deviceStore.getAll());
-      socket.emit('rooms:update', roomService.summarizeRooms(this._deviceStore, this._roomSampleBuffer));
+      socket.emit('rooms:update', this._getRoomsWithPredictions());
       socket.emit('usage:update', buildUsageSnapshot(this._deviceStore, this._energyStore));
       socket.emit('alerts:update', this._alertStore.getAll());
       socket.emit('incidents:update', this._incidents.getAll());
@@ -110,8 +112,17 @@ class SocketBroadcaster {
   /** @private */
   _emitDeviceScopedUpdates() {
     this._io.emit('devices:update', this._deviceStore.getAll());
-    this._io.emit('rooms:update', roomService.summarizeRooms(this._deviceStore, this._roomSampleBuffer));
+    this._io.emit('rooms:update', this._getRoomsWithPredictions());
     this._emitUsage();
+  }
+
+  /** @private */
+  _getRoomsWithPredictions() {
+    const rooms = roomService.summarizeRooms(this._deviceStore, this._roomSampleBuffer);
+    return rooms.map(room => ({
+      ...room,
+      predictions: this._predictionEngine.getRoomPredictions(room)
+    }));
   }
 
   /** @private */

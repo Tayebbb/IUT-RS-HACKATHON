@@ -14,6 +14,7 @@ const { Simulator } = require('./simulator');
 const { registerRoutes } = require('./routes');
 const { SocketBroadcaster } = require('./sockets');
 const { HuggingFaceService } = require('./services/huggingFaceService');
+const { PredictionEngine } = require('./services/predictionEngine');
 const {
   DeviceService,
   RoomService,
@@ -39,6 +40,8 @@ function bootstrap() {
     apiToken: config.hfApiToken,
     model: config.hfModel
   });
+  
+  const predictionEngine = new PredictionEngine();
 
   const alertEngine = new AlertEngine({ deviceStore, alertStore, roomSampleBuffer, hfService });
   const incidentAggregator = new IncidentAggregator({ alertStore });
@@ -48,7 +51,8 @@ function bootstrap() {
     energyStore,
     alertStore,
     incidentAggregator,
-    roomSampleBuffer
+    roomSampleBuffer,
+    predictionEngine
   });
   const simulator = new Simulator({ deviceStore });
 

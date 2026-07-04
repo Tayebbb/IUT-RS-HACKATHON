@@ -146,7 +146,19 @@ export default function RoomCard({ room, delay = 0 }) {
       {/* Header row */}
       <div className="relative flex items-start justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-white">{room.name}</h3>
+          <div className="flex items-center gap-3">
+            <h3 className="text-lg font-semibold text-white">{room.name}</h3>
+            {/* Occupancy Prediction Badge */}
+            {room.predictions && (
+              <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
+                room.predictions.predictedState === 'occupied' 
+                  ? 'border-green-500/30 text-green-400 bg-green-500/10'
+                  : 'border-slate-500/30 text-slate-400 bg-slate-500/10'
+              }`}>
+                {room.predictions.predictedState === 'occupied' ? '👤 Occupied' : '👻 Empty'}
+              </span>
+            )}
+          </div>
           <p className="mt-0.5 text-xs text-slate-400">
             {room.onCount}/{room.totalDevices} devices on ·{' '}
             <span className={room.powerWatts > 0 ? 'text-accent-300' : 'text-slate-500'}>
@@ -204,6 +216,37 @@ export default function RoomCard({ room, delay = 0 }) {
           )}
         </div>
       </div>
+
+      {/* AI Cost-Savings Optimizer Alert */}
+      <AnimatePresence>
+        {room.predictions?.predictedState === 'unoccupied' && room.predictions?.potentialSavingsBdt > 0 && (
+          <motion.div
+            initial={{ opacity: 0, height: 0, marginTop: 0 }}
+            animate={{ opacity: 1, height: 'auto', marginTop: 16 }}
+            exit={{ opacity: 0, height: 0, marginTop: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="relative rounded-lg border border-purple-500/30 bg-purple-500/10 p-3 shadow-[0_0_15px_rgba(168,85,247,0.15)]">
+              {/* Shimmer effect inside the alert */}
+              <motion.div
+                className="pointer-events-none absolute inset-0 rounded-lg"
+                style={{ background: 'linear-gradient(90deg, transparent, rgba(168,85,247,0.1), transparent)' }}
+                animate={{ x: ['-100%', '200%'] }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+              />
+              <div className="relative flex items-center gap-3">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-purple-500/20 text-purple-300">
+                  💡
+                </div>
+                <div className="text-xs text-purple-200">
+                  <strong className="block font-semibold tracking-wide text-purple-300">Waste Optimizer</strong>
+                  Room is empty. Turn off active devices to save <span className="font-bold text-white">~{room.predictions.potentialSavingsBdt} BDT</span> today.
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Device chips */}
       <div className="mt-4 space-y-2">
