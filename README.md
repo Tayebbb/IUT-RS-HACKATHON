@@ -16,6 +16,38 @@
 
 <br />
 
+## 🎯 Problem Statement
+
+Offices routinely waste electricity because there is **no live visibility** into
+which rooms and devices are actually consuming power. Fans and lights are
+commonly left running in **empty rooms**, are forgotten **after working hours**,
+or are kept on **continuously for hours** with no one present. In a country like
+Bangladesh — where grid capacity is constrained and tariffs directly hit the
+monthly bill — this untracked consumption adds up to significant financial waste
+and unnecessary carbon output.
+
+Existing facility tools are typically either **passive dashboards** (show a
+number, do nothing) or **rigid rule engines** (fixed schedules that ignore real
+occupancy). Facility managers therefore need a platform that can:
+
+1. **Observe** every fan and light in real time (per-device wattage, per-room
+   totals, cumulative kWh).
+2. **Detect** anomalies automatically — after-hours activity, rooms left on too
+   long, sudden spikes above the rolling baseline.
+3. **Explain** _why_ an anomaly happened in plain language a non-engineer can
+   act on.
+4. **Predict** whether a room is really occupied (not just "the light is on")
+   and quantify the **BDT cost of the waste**.
+5. **Act** — safely shut down forgotten devices when the room is confidently
+   empty — and **notify** the on-call team through the channels they already use
+   (Discord).
+
+The **Office Power Monitor** solves this end-to-end: sensing → aggregation → AI
+reasoning → automated response → chat-ops notification, all from a single source
+of truth.
+
+---
+
 ## 📖 Project Overview
 
 The **Office Power Monitor** is an enterprise-grade IoT platform built to track,
@@ -66,8 +98,8 @@ anomalous usage.
 > _(Hackathon Note: Replace these placeholders with actual screenshots prior to
 > presentation)_
 
-| Main Dashboard | Interactive Floor Plan | Discord Bot (Embeds & Alerts) |
-| :---: | :---: | :---: |
+|                           Main Dashboard                            |                           Interactive Floor Plan                           |                       Discord Bot (Embeds & Alerts)                       |
+| :-----------------------------------------------------------------: | :------------------------------------------------------------------------: | :-----------------------------------------------------------------------: |
 | <img src="docs/media/dashboard.png" alt="Dashboard UI" width="400"> | <img src="docs/media/floorplan.png" alt="Interactive SVG Map" width="400"> | <img src="docs/media/discord.png" alt="Discord Integrations" width="400"> |
 
 ### 🎬 End-to-End Demo (Shared Backend Proof)
@@ -359,18 +391,146 @@ them manually. Ensure you have **Node.js 20+** installed.
 
 ## 🔌 API Documentation
 
-The backend adheres to a strict RESTful envelope:
-`{ success: boolean, data: { ... }, error?: { ... } }`.
+The backend exposes a REST surface under `/api/*` (port `4000`) and a real-time
+Socket.IO channel on the same origin. All REST responses follow a strict
+envelope:
 
-- **`GET /api/devices`** - Array of raw device telemetries.
-- **`GET /api/rooms`** - Aggregated summary of power consumption per room.
-- **`GET /api/usage`** - High-level metrics, total Watts, and estimated daily
-  kWh.
-- **`GET /api/alerts?status=active`** - Fetch system warnings and errors.
-- **`GET /api/incidents`** - Fetch deduplicated incident tickets.
+```json
+{ "success": true,  "data": { /* payload */ } }
+{ "success": false, "error": { "code": "device_not_found", "status": 404 } }
+```
 
-_(Full API spec can be found internally via Swagger comments on the router
-controllers)._
+### REST Endpoints
+
+| Method | Path                      | Description                                                                                                                                                                        | Query / Body                       |
+| :----- | :------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------- |
+| `GET`  | `/api/health`             | Liveness probe.                                                                                                                                                                    | —                                  |
+| `GET`  | `/api/devices`            | List all 15 devices with live telemetry (`status`, `power`, `type`, `roomId`, `lastChanged`).                                                                                      | —                                  |
+| `GET`  | `/api/devices/:id`        | Fetch a single device. Returns `404 device_not_found` if unknown.                                                                                                                  | —                                  |
+| `POST` | `/api/devices/:id/toggle` | Toggle a device ON⇄OFF. Returns the updated device. Emits `devices:update` on the socket.                                                                                          | —                                  |
+| `GET`  | `/api/rooms`              | Per-room summary: `name`, `onCount`, `totalDevices`, `powerWatts`, `devices[]`, `predictions` (see AI section).                                                                    | —                                  |
+| `GET`  | `/api/usage`              | Aggregate snapshot: `currentPowerWatts`, `energyTodayKwh`, `energyCostBdt`, `projectedMonthlyCostBdt`, `powerByRoom`, `powerByType`, `activeDevicesCount`, `highestConsumingRoom`. | —                                  |
+| `GET`  | `/api/alerts`             | List alerts. Filter by `?status=active` or `?status=all` (default `all`).                                                                                                          | `?status=active\|all`              |
+| `GET`  | `/api/incidents`          | List deduplicated incident tickets (groups of related alerts).                                                                                                                     | `?status=active\|all`              |
+| `POST` | `/api/demo/:scenario`     | Trigger a preconfigured demo scenario (e.g. force after-hours spike). Returns `400` on unknown scenario.                                                                           | path param                         |
+| `POST` | `/api/simulate`           | What-if evaluator — pass a hypothetical device list, get back predicted anomalies without mutating state.                                                                          | `{ "simulatedDevices": Device[] }` |
+
+### Socket.IO Events
+
+Clients (React dashboard, Discord bot) connect to the same origin as the REST
+API. On connect, the backend emits a **full snapshot** of every channel so late
+joiners never wait for the next tick.
+
+| Event              | Payload                                  | Emitted When                           |
+| :----------------- | :--------------------------------------- | :------------------------------------- |
+| `devices:update`   | `Device[]`                               | Any device toggles (simulator or API). |
+| `rooms:update`     | `RoomSummary[]` (includes `predictions`) | Device change or heartbeat.            |
+| `usage:update`     | `UsageSnapshot`                          | Device change or 5 s heartbeat.        |
+| `alerts:update`    | `Alert[]`                                | Alert engine opens/closes an alert.    |
+| `incidents:update` | `Incident[]`                             | Incident aggregator changes state.     |
+
+The Discord bot subscribes to `incidents:update` and posts newly-opened active
+incidents to the channels listed in `ALERT_CHANNEL_IDS` (see
+[bot/src/alertRelay.js](bot/src/alertRelay.js)).
+
+> Full request/response schemas are documented via Swagger-JSDoc annotations on
+> each router controller, and mirrored in [docs/API.md](docs/API.md).
+
+---
+
+## 🧠 AI Integration Details
+
+The platform combines a **classical ML predictor** running locally in the
+backend with a **hosted LLM** for natural-language reasoning. Both are
+inference-only — no bespoke training was performed for this hackathon; the
+logistic-regression weights are hand-calibrated, and the LLM is used zero-shot
+with structured prompts.
+
+### 1. Virtual Occupancy Sensor — Logistic Regression
+
+File:
+[backend/src/services/predictionEngine.js](backend/src/services/predictionEngine.js)
+
+A lightweight logistic regression estimates the probability that a room is
+currently occupied without needing a physical PIR sensor. Features:
+
+| Feature                        |  Weight |
+| :----------------------------- | ------: |
+| bias                           |  `-2.0` |
+| `fanOnCount`                   |  `+1.5` |
+| `lightOnCount`                 |  `+1.0` |
+| `minutesSinceLastDeviceChange` | `-0.05` |
+| `isOfficeHours` (9AM–5PM)      |  `+2.0` |
+
+The sigmoid output ≥ `0.5` is classified as **occupied**. If a room is predicted
+**unoccupied** while devices are still on, the engine projects the **BDT cost of
+waste** until end-of-day (`potentialSavingsBdt`) using the configured
+`TARIFF_BDT_PER_KWH`. This payload is embedded in every `rooms:update` socket
+event and drives the Eco-Mode auto-shutdown (5-minute grace period).
+
+### 2. Root-Cause Insights — Hugging Face Inference API
+
+File:
+[backend/src/services/huggingFaceService.js](backend/src/services/huggingFaceService.js)
+
+When the alert engine opens an anomaly, the backend constructs a structured
+prompt (room name, current W, rolling baseline, deviation %, active devices,
+office-hours flag, tariff, running BDT cost) and calls the **Hugging Face
+Router** OpenAI-compatible endpoint
+(`https://router.huggingface.co/v1/chat/completions`).
+
+| Setting       | Value                                                                                                                                                |
+| :------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Default model | `meta-llama/Llama-3.2-3B-Instruct` (overridable via `HF_MODEL`)                                                                                      |
+| Auth          | `HF_API_TOKEN` (Bearer)                                                                                                                              |
+| Temperature   | `0.4`                                                                                                                                                |
+| Max tokens    | `120`                                                                                                                                                |
+| Timeout       | `35 s`                                                                                                                                               |
+| Caching       | In-memory LRU (~50 entries) keyed by alert **signature** so each unique anomaly costs exactly **one** LLM call. Invalidated when the alert resolves. |
+| Fallback      | Returns `null` if no token is configured or the call fails — the UI simply hides the AI card, so the system degrades gracefully.                     |
+
+The generated 2–3 sentence insight is broadcast in the incident payload and
+rendered in the dashboard's `AIInsightCard`.
+
+### 3. Discord Chat-Ops — LLM Polishing & Tool-Calling `!ask`
+
+File: [bot/src/llm.js](bot/src/llm.js)
+
+The bot uses the same HF router endpoint (OpenAI-compatible schema, keyed by
+`OPENAI_API_KEY` / `OPENAI_BASE_URL` / `OPENAI_MODEL`) for two purposes:
+
+- **`polish(text, intent)`** — rewrites the deterministic fallback templates
+  (`!status`, `!room`, `!usage`) into a friendlier Discord tone with a strict
+  system prompt: _"Keep ALL numbers, device names, and factual details EXACTLY
+  as provided. Do not invent data."_ Also used to reword automated alert
+  messages before they hit the channel.
+- **`askQuestion(q)`** — powers the `!ask` command via **function-calling**. The
+  model is given four read-only tools (`getUsage`, `getRooms`, `getAlerts`,
+  `getIncidents`) that proxy to the backend REST API. Iterations are capped at 2
+  tool rounds, temperature `0.2`, 8 s per completion. The system prompt strictly
+  scopes the bot to office-power topics and forbids state mutations.
+
+If no LLM key is present, `polish()` transparently returns the raw template and
+`!ask` responds with a helpful error — the bot remains fully functional for
+deterministic commands.
+
+### 4. Anomaly Detection (Statistical, Non-ML)
+
+File: [backend/src/alerts/alertEngine.js](backend/src/alerts/alertEngine.js) &
+[backend/src/store/roomSampleBuffer.js](backend/src/store/roomSampleBuffer.js)
+
+Complementing the ML/LLM stack, a rolling per-room sample buffer feeds simple
+threshold rules (`room_on_after_hours`, `room_on_too_long`,
+`room_spike_above_baseline`). These deterministic checks are what _trigger_ the
+AI explanation — the LLM never decides whether an alert fires, only how to
+describe one that already did.
+
+### Training Approach
+
+| Component                   | Approach                                                                                                                                                                                                                                                              |
+| :-------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Logistic Regression         | **Hand-calibrated weights** based on domain heuristics (office hours are the dominant positive signal; long inactivity is negative). No dataset training in this iteration — designed to be swapped for a fitted model once a labeled occupancy dataset is collected. |
+| LLM (Llama-3.2-3B-Instruct) | **Zero-shot inference only.** No fine-tuning; behavior is controlled entirely through structured system prompts and JSON-shaped context injection.                                                                                                                    |
 
 ---
 
