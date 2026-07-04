@@ -77,6 +77,14 @@ class RoomService {
   getRoomSummary(roomId) {
     return getRoomSummary(this._store, this._sampleBuffer, roomId);
   }
+
+  /**
+   * Return rich room summaries for all rooms (alias of summarizeRooms for clarity).
+   * @returns {RoomSummary[]}
+   */
+  getRooms() {
+    return this.summarizeRooms();
+  }
 }
 
 module.exports = { summarizeRooms, getRoomSummary, RoomService };

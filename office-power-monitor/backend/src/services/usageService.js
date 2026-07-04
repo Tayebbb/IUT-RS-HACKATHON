@@ -57,6 +57,7 @@ function buildUsageSnapshot(deviceStore, energyStore) {
   return {
     timestamp: Date.now(),
     currentPowerWatts,
+    totalPowerWatts: currentPowerWatts,
     powerByRoom: perRoom,
     powerByType: perType,
     powerByDevice: perDevice,

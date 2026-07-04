@@ -15,6 +15,7 @@ const { registerRoutes } = require('./routes');
 const { SocketBroadcaster } = require('./sockets');
 const { HuggingFaceService } = require('./services/huggingFaceService');
 const { PredictionEngine } = require('./services/predictionEngine');
+const { EcoModeEngine } = require('./services/ecoModeEngine');
 const {
   DeviceService,
   RoomService,
@@ -73,12 +74,20 @@ function bootstrap() {
     usageService,
     alertService,
     incidentService,
-    demoService
+    demoService,
+    predictionEngine
+  });
+
+  const ecoModeEngine = new EcoModeEngine({ predictionEngine, deviceService, roomService });
+  // Forward Eco-Mode auto-shutdown events to all connected socket clients
+  ecoModeEngine.on('eco:action', (payload) => {
+    io.emit('eco:action', payload);
   });
 
   incidentAggregator.start();
-  broadcaster.start(); // Must start before alertEngine so roomSampleBuffer gets the spike!
+  broadcaster.start();
   alertEngine.start();
+  ecoModeEngine.start();
   simulator.start();
 
   server.listen(config.port, config.host, () => {
@@ -89,6 +98,7 @@ function bootstrap() {
     logger.warn('Shutting down', { signal });
     simulator.stop();
     alertEngine.stop();
+    ecoModeEngine.stop();
     incidentAggregator.stop();
     broadcaster.stop();
     io.close();

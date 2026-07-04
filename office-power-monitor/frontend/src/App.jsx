@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import Header from './components/Header.jsx';
 import SummaryCards from './components/SummaryCards.jsx';
 import RoomCard from './components/RoomCard.jsx';
@@ -5,6 +6,7 @@ import PowerBreakdown from './components/PowerBreakdown.jsx';
 import IncidentPanel from './components/IncidentPanel.jsx';
 import OfficeLayout from './components/OfficeLayout.jsx';
 import DemoControls from './components/DemoControls.jsx';
+import EcoToast from './components/EcoToast.jsx';
 import { useLiveData } from './hooks/useLiveData.js';
 
 /**
@@ -16,7 +18,14 @@ import { useLiveData } from './hooks/useLiveData.js';
  * room grid.
  */
 export default function App() {
-  const { connected, devices, rooms, usage, alerts, incidents } = useLiveData();
+  const { connected, devices, rooms, usage, alerts, incidents, ecoNotifications } = useLiveData();
+  const [dismissed, setDismissed] = useState(new Set());
+
+  const visibleEcoNotifications = ecoNotifications.filter((n) => !dismissed.has(n.id));
+
+  const handleDismiss = (id) => {
+    setDismissed((prev) => new Set([...prev, id]));
+  };
 
   return (
     <div className="min-h-screen bg-radial-fade">
@@ -47,6 +56,9 @@ export default function App() {
         
         <DemoControls />
       </div>
+
+      {/* Eco-Mode notification toasts — rendered outside main layout flow */}
+      <EcoToast notifications={visibleEcoNotifications} onDismiss={handleDismiss} />
     </div>
   );
 }

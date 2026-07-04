@@ -1,30 +1,52 @@
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatRelative, formatWatts } from '../lib/format.js';
 import { FanIcon, LightIcon } from './DeviceIcons.jsx';
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
+
 /**
- * Premium animated device chip.
- * Fans spin at wattage-proportional speed. Lights emit a pulsing glow.
+ * Interactive animated device chip.
+ * Clicking the chip toggles the device on/off via the REST API.
+ * Includes optimistic UI updates and a transient loading state.
  */
 function DeviceChip({ device, index = 0 }) {
+  const [pending, setPending] = useState(false);
   const on = device.status === 'on';
   const isFan = device.type === 'fan';
 
+  const handleToggle = async () => {
+    if (pending) { return; }
+    setPending(true);
+    try {
+      await fetch(`${BACKEND_URL}/api/devices/${device.id}/toggle`, { method: 'POST' });
+    // eslint-disable-next-line no-unused-vars
+    } catch (e) {
+      // Socket update from backend will reconcile state regardless
+    } finally {
+      setPending(false);
+    }
+  };
+
   return (
-    <motion.div
+    <motion.button
       layout
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
       transition={{ duration: 0.3, delay: index * 0.04, ease: 'easeOut' }}
+      onClick={handleToggle}
+      disabled={pending}
       className={`
-        relative flex items-center justify-between overflow-hidden
-        rounded-xl border px-3 py-2.5 transition-colors duration-300
+        relative w-full flex items-center justify-between overflow-hidden
+        rounded-xl border px-3 py-2.5 text-left transition-all duration-300
+        cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/50
+        ${pending ? 'opacity-60' : ''}
         ${on
           ? isFan
-            ? 'border-sky-500/30 bg-sky-500/5 hover:border-sky-400/50 hover:bg-sky-500/10'
-            : 'border-yellow-400/30 bg-yellow-400/5 hover:border-yellow-300/50 hover:bg-yellow-400/10'
-          : 'border-white/[0.07] bg-white/[0.03] hover:border-white/15'}
+            ? 'border-sky-500/30 bg-sky-500/5 hover:border-sky-400/50 hover:bg-sky-500/10 active:scale-[0.99]'
+            : 'border-yellow-400/30 bg-yellow-400/5 hover:border-yellow-300/50 hover:bg-yellow-400/10 active:scale-[0.99]'
+          : 'border-white/[0.07] bg-white/[0.03] hover:border-white/15 hover:bg-white/[0.06] active:scale-[0.99]'}
       `}
     >
       {/* Subtle animated shimmer when ON */}
@@ -70,17 +92,36 @@ function DeviceChip({ device, index = 0 }) {
         </div>
       </div>
 
-      <div className="flex-shrink-0 text-right">
-        <motion.div
-          className={`text-xs font-semibold tracking-widest ${on ? (isFan ? 'text-sky-400' : 'text-yellow-300') : 'text-slate-500'}`}
-          animate={on ? { opacity: [0.7, 1, 0.7] } : { opacity: 1 }}
-          transition={{ duration: 2, repeat: on ? Infinity : 0 }}
-        >
-          {on ? 'ON' : 'OFF'}
-        </motion.div>
-        <div className="mt-0.5 text-[11px] text-slate-400">{formatWatts(on ? device.power : 0)}</div>
+      <div className="flex flex-shrink-0 items-center gap-3 text-right">
+        {/* Toggle switch visual */}
+        <div className={`relative h-5 w-9 rounded-full transition-colors duration-300 ${on ? (isFan ? 'bg-sky-500/60' : 'bg-yellow-400/60') : 'bg-white/10'}`}>
+          <motion.div
+            className={`absolute top-0.5 h-4 w-4 rounded-full shadow-sm transition-colors duration-300 ${on ? 'bg-white' : 'bg-slate-500'}`}
+            animate={{ x: on ? 16 : 2 }}
+            transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
+          />
+          {/* Pending spinner overlay */}
+          {pending && (
+            <motion.div
+              className="absolute inset-0 rounded-full border border-white/30"
+              animate={{ opacity: [0.4, 1, 0.4] }}
+              transition={{ duration: 0.8, repeat: Infinity }}
+            />
+          )}
+        </div>
+
+        <div>
+          <motion.div
+            className={`text-xs font-semibold tracking-widest ${on ? (isFan ? 'text-sky-400' : 'text-yellow-300') : 'text-slate-500'}`}
+            animate={on ? { opacity: [0.7, 1, 0.7] } : { opacity: 1 }}
+            transition={{ duration: 2, repeat: on ? Infinity : 0 }}
+          >
+            {on ? 'ON' : 'OFF'}
+          </motion.div>
+          <div className="mt-0.5 text-[11px] text-slate-400">{formatWatts(on ? device.power : 0)}</div>
+        </div>
       </div>
-    </motion.div>
+    </motion.button>
   );
 }
 
