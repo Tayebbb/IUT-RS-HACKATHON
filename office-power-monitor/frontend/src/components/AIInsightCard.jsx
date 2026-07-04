@@ -14,7 +14,7 @@ function useTypewriter(text, speed = 18) {
     const timer = setInterval(() => {
       setDisplayed(text.slice(0, i + 1));
       i += 1;
-      if (i >= text.length) clearInterval(timer);
+      if (i >= text.length) {clearInterval(timer);}
     }, speed);
     return () => clearInterval(timer);
   }, [text, speed]);
@@ -75,7 +75,7 @@ function InsightText({ text }) {
  * @param {{ insight: string|null, isPowerAnomaly: boolean }} props
  */
 export default function AIInsightCard({ insight, isPowerAnomaly }) {
-  if (!isPowerAnomaly) return null;
+  if (!isPowerAnomaly) {return null;}
 
   return (
     <AnimatePresence>
@@ -97,7 +97,7 @@ export default function AIInsightCard({ insight, isPowerAnomaly }) {
             transition={{ duration: 1.2, repeat: insight ? 0 : Infinity }}
           />
           <span className="bg-gradient-to-r from-cyan-300 to-purple-400 bg-clip-text text-[10px] font-semibold uppercase tracking-widest text-transparent">
-            🤖 AI Power Analyst
+            AI Power Analyst
           </span>
 
           {/* Shimmer sweep on the badge when loading */}

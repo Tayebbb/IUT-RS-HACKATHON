@@ -120,9 +120,9 @@ export default function OfficeLayout({ devices = [], rooms = [], alerts = [] }) 
             // Base color: from cool blue (low load) to warm amber (high load)
             let fillColor = 'rgba(15,23,42,0.55)'; // default vacant
             if (utilisation > 0) {
-              if (utilisation < 0.5) fillColor = 'rgba(14,165,233,0.1)'; // cool blue
-              else if (utilisation < 1) fillColor = 'rgba(245,158,11,0.1)'; // warm amber
-              else fillColor = 'rgba(245,158,11,0.2)'; // hot amber
+              if (utilisation < 0.5) {fillColor = 'rgba(14,165,233,0.1)';} // cool blue
+              else if (utilisation < 1) {fillColor = 'rgba(245,158,11,0.1)';} // warm amber
+              else {fillColor = 'rgba(245,158,11,0.2)';} // hot amber
             }
 
             return (

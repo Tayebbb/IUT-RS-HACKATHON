@@ -65,7 +65,7 @@ class RoomService {
    * @param {import('../store/roomSampleBuffer').RoomSampleBuffer} [deps.roomSampleBuffer]
    */
   constructor({ deviceStore, roomSampleBuffer }) {
-    if (!deviceStore) throw new Error('RoomService requires deviceStore');
+    if (!deviceStore) {throw new Error('RoomService requires deviceStore');}
     this._store = deviceStore;
     this._sampleBuffer = roomSampleBuffer;
   }

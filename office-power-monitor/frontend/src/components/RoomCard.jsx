@@ -88,7 +88,7 @@ function DeviceChip({ device, index = 0 }) {
  * Simple SVG sparkline for power history
  */
 function Sparkline({ samples }) {
-  if (!samples || samples.length < 2) return null;
+  if (!samples || samples.length < 2) {return null;}
   const maxW = Math.max(...samples.map((s) => s.w), 10);
   const minW = 0;
   
@@ -155,7 +155,7 @@ export default function RoomCard({ room, delay = 0 }) {
                   ? 'border-green-500/30 text-green-400 bg-green-500/10'
                   : 'border-slate-500/30 text-slate-400 bg-slate-500/10'
               }`}>
-                {room.predictions.predictedState === 'occupied' ? '👤 Occupied' : '👻 Empty'}
+                {room.predictions.predictedState === 'occupied' ? 'Occupied' : 'Empty'}
               </span>
             )}
           </div>
@@ -235,9 +235,6 @@ export default function RoomCard({ room, delay = 0 }) {
                 transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
               />
               <div className="relative flex items-center gap-3">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-purple-500/20 text-purple-300">
-                  💡
-                </div>
                 <div className="text-xs text-purple-200">
                   <strong className="block font-semibold tracking-wide text-purple-300">Waste Optimizer</strong>
                   Room is empty. Turn off active devices to save <span className="font-bold text-white">~{room.predictions.potentialSavingsBdt} BDT</span> today.

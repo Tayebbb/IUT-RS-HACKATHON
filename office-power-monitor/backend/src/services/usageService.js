@@ -93,7 +93,7 @@ class UsageService {
    * @param {EnergyStore} deps.energyStore
    */
   constructor({ deviceStore, energyStore }) {
-    if (!deviceStore || !energyStore) throw new Error('UsageService requires deviceStore and energyStore');
+    if (!deviceStore || !energyStore) {throw new Error('UsageService requires deviceStore and energyStore');}
     this._deviceStore = deviceStore;
     this._energyStore = energyStore;
   }

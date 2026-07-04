@@ -113,7 +113,7 @@ Write a concise 2-3 sentence AI insight that:
 2. Recommends the single most impactful action
 3. Quantifies the BDT savings if that action is taken immediately
 
-Be specific, actionable, and professional. Do not repeat the raw numbers unnecessarily. Maximum 60 words.`;
+Maintain a strictly professional, formal, and objective tone. Under no circumstances should you use emojis or casual language. Do not repeat the raw numbers unnecessarily. Maximum 60 words.`;
   }
 
   /** @private */

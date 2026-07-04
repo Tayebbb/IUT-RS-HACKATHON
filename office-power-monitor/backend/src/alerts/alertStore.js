@@ -169,7 +169,7 @@ class AlertStore extends EventEmitter {
    */
   attachInsight(signature, insightText) {
     const alert = this._activeBySig.get(signature);
-    if (!alert) return;
+    if (!alert) {return;}
     alert.aiInsight = insightText;
     alert.updatedAt = new Date().toISOString();
     this.emitChanged();

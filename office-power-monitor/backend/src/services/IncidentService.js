@@ -9,7 +9,7 @@ class IncidentService {
    * @param {import('../incidents/incidentAggregator').IncidentAggregator} deps.incidentAggregator
    */
   constructor({ incidentAggregator }) {
-    if (!incidentAggregator) throw new Error('IncidentService requires incidentAggregator');
+    if (!incidentAggregator) {throw new Error('IncidentService requires incidentAggregator');}
     this._aggregator = incidentAggregator;
   }
 

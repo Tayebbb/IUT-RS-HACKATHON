@@ -9,7 +9,7 @@ class AlertService {
    * @param {import('../alerts/alertStore').AlertStore} deps.alertStore
    */
   constructor({ alertStore }) {
-    if (!alertStore) throw new Error('AlertService requires alertStore');
+    if (!alertStore) {throw new Error('AlertService requires alertStore');}
     this._store = alertStore;
   }
 

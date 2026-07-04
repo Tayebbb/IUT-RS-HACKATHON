@@ -47,8 +47,8 @@ class PredictionEngine {
 
     room.devices.forEach(d => {
       if (d.status === 'on') {
-        if (d.type === 'fan') fanOnCount++;
-        if (d.type === 'light') lightOnCount++;
+        if (d.type === 'fan') {fanOnCount++;}
+        if (d.type === 'light') {lightOnCount++;}
       }
       
       const changedMs = new Date(d.lastChanged).getTime();
@@ -58,7 +58,7 @@ class PredictionEngine {
     });
 
     // If no devices exist or ever changed, default to empty
-    if (mostRecentChangeMs === 0) return 0.0;
+    if (mostRecentChangeMs === 0) {return 0.0;}
 
     const minutesSinceChange = (nowMs - mostRecentChangeMs) / 60000;
 
@@ -83,7 +83,7 @@ class PredictionEngine {
       .filter(d => d.status === 'on')
       .reduce((sum, d) => sum + (d.wattage || 0), 0);
       
-    if (currentPowerW === 0) return 0.0;
+    if (currentPowerW === 0) {return 0.0;}
 
     const now = new Date(this._now());
     const currentHour = now.getHours() + now.getMinutes() / 60;

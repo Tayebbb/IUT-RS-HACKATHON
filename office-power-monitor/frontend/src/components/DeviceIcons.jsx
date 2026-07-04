@@ -1,5 +1,4 @@
-import { motion, useSpring, useTransform } from 'framer-motion';
-import { useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 
 /**
  * Animated spinning fan blade SVG using Framer Motion.
