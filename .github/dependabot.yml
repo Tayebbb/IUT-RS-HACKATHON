@@ -1,0 +1,107 @@
+version: 2
+
+# Reusable ignore list — YAML anchor keeps the config DRY.
+# We only decline breaking majors; minor + patch are still auto-proposed.
+x-npm-major-ignores: &npm-major-ignores
+  - dependency-name: 'react'
+    update-types: ['version-update:semver-major']
+  - dependency-name: 'react-dom'
+    update-types: ['version-update:semver-major']
+  - dependency-name: 'express'
+    update-types: ['version-update:semver-major']
+  - dependency-name: 'tailwindcss'
+    update-types: ['version-update:semver-major']
+  - dependency-name: 'vite'
+    update-types: ['version-update:semver-major']
+  - dependency-name: '@vitejs/plugin-react'
+    update-types: ['version-update:semver-major']
+  - dependency-name: 'dotenv'
+    update-types: ['version-update:semver-major']
+  - dependency-name: 'framer-motion'
+    update-types: ['version-update:semver-major']
+  - dependency-name: 'discord.js'
+    update-types: ['version-update:semver-major']
+  - dependency-name: 'socket.io'
+    update-types: ['version-update:semver-major']
+  - dependency-name: 'socket.io-client'
+    update-types: ['version-update:semver-major']
+  - dependency-name: 'eslint'
+    update-types: ['version-update:semver-major']
+  - dependency-name: 'eslint-plugin-react'
+    update-types: ['version-update:semver-major']
+  - dependency-name: 'eslint-plugin-react-hooks'
+    update-types: ['version-update:semver-major']
+  - dependency-name: 'prettier'
+    update-types: ['version-update:semver-major']
+  - dependency-name: 'concurrently'
+    update-types: ['version-update:semver-major']
+
+updates:
+  # Root workspaces (backend/frontend/bot inherit via npm workspaces)
+  - package-ecosystem: npm
+    directory: '/'
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      dev-dependencies:
+        dependency-type: development
+      minor-and-patch:
+        update-types: ['minor', 'patch']
+    ignore: *npm-major-ignores
+
+  - package-ecosystem: npm
+    directory: '/backend'
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    ignore: *npm-major-ignores
+
+  - package-ecosystem: npm
+    directory: '/frontend'
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    ignore: *npm-major-ignores
+
+  - package-ecosystem: npm
+    directory: '/bot'
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    ignore: *npm-major-ignores
+
+  # GitHub Actions — allow patches, decline majors
+  - package-ecosystem: github-actions
+    directory: '/'
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
+
+  # Dockerfiles — decline base-image major bumps (Node LTS jumps are manual)
+  - package-ecosystem: docker
+    directory: '/backend'
+    schedule:
+      interval: weekly
+    ignore:
+      - dependency-name: 'node'
+        update-types: ['version-update:semver-major']
+  - package-ecosystem: docker
+    directory: '/frontend'
+    schedule:
+      interval: weekly
+    ignore:
+      - dependency-name: 'node'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'nginxinc/nginx-unprivileged'
+        update-types: ['version-update:semver-major']
+  - package-ecosystem: docker
+    directory: '/bot'
+    schedule:
+      interval: weekly
+    ignore:
+      - dependency-name: 'node'
+        update-types: ['version-update:semver-major']

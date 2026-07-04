@@ -91,10 +91,7 @@ export default function IncidentPanel({ incidents, alerts }) {
 
                   {/* AI Insight — shown for power_anomaly alerts (pending or complete) */}
                   {a.status === 'active' && a.kind === 'power_anomaly' && (
-                    <AIInsightCard
-                      insight={a.aiInsight}
-                      isPowerAnomaly={true}
-                    />
+                    <AIInsightCard insight={a.aiInsight} isPowerAnomaly={true} />
                   )}
                 </motion.li>
               ))}

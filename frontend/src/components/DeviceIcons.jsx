@@ -6,19 +6,16 @@ import { motion } from 'framer-motion';
  */
 export function FanIcon({ on = false, wattage = 75, size = 20 }) {
   // Map wattage to duration: 75W fan → 1.1s/rev, lighter → faster
-  const duration = on ? Math.max(0.6, 1.4 - (wattage / 200)) : 0;
+  const duration = on ? Math.max(0.6, 1.4 - wattage / 200) : 0;
 
   return (
-    <motion.svg
-      viewBox="0 0 24 24"
-      width={size}
-      height={size}
-      style={{ display: 'block' }}
-    >
+    <motion.svg viewBox="0 0 24 24" width={size} height={size} style={{ display: 'block' }}>
       {/* Outer ring glow when on */}
       {on && (
         <motion.circle
-          cx="12" cy="12" r="11"
+          cx="12"
+          cy="12"
+          r="11"
           fill="none"
           stroke="rgba(56,189,248,0.35)"
           strokeWidth="1"
@@ -43,26 +40,29 @@ export function FanIcon({ on = false, wattage = 75, size = 20 }) {
           <g key={angle} transform={`rotate(${angle} 12 12)`}>
             {/* Blade teardrop shape */}
             <ellipse
-              cx="12" cy="6.5"
-              rx="3.2" ry="5.5"
+              cx="12"
+              cy="6.5"
+              rx="3.2"
+              ry="5.5"
               fill={on ? 'rgba(56,189,248,0.92)' : 'rgba(100,116,139,0.6)'}
             />
             {/* Blade highlight */}
             <ellipse
-              cx="11.2" cy="5.5"
-              rx="1.2" ry="2.5"
+              cx="11.2"
+              cy="5.5"
+              rx="1.2"
+              ry="2.5"
               fill={on ? 'rgba(255,255,255,0.35)' : 'transparent'}
             />
           </g>
         ))}
 
         {/* Center hub */}
+        <circle cx="12" cy="12" r="2.8" fill={on ? '#38bdf8' : '#475569'} />
         <circle
-          cx="12" cy="12" r="2.8"
-          fill={on ? '#38bdf8' : '#475569'}
-        />
-        <circle
-          cx="12" cy="12" r="1.4"
+          cx="12"
+          cy="12"
+          r="1.4"
           fill={on ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.1)'}
         />
       </motion.g>
@@ -75,7 +75,12 @@ export function FanIcon({ on = false, wattage = 75, size = 20 }) {
  */
 export function LightIcon({ on = false, size = 20 }) {
   return (
-    <svg viewBox="0 0 24 24" width={size} height={size} style={{ display: 'block', overflow: 'visible' }}>
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      style={{ display: 'block', overflow: 'visible' }}
+    >
       <defs>
         <radialGradient id={`bulb-glow-${on}`} cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="rgba(253,224,71,1)" />
@@ -87,7 +92,9 @@ export function LightIcon({ on = false, size = 20 }) {
       {on && (
         <>
           <motion.circle
-            cx="12" cy="10" r="9"
+            cx="12"
+            cy="10"
+            r="9"
             fill="none"
             stroke="rgba(253,224,71,0.25)"
             strokeWidth="1"
@@ -97,7 +104,9 @@ export function LightIcon({ on = false, size = 20 }) {
             style={{ transformOrigin: '12px 10px' }}
           />
           <motion.circle
-            cx="12" cy="10" r="9"
+            cx="12"
+            cy="10"
+            r="9"
             fill="none"
             stroke="rgba(253,224,71,0.15)"
             strokeWidth="1"
@@ -120,7 +129,10 @@ export function LightIcon({ on = false, size = 20 }) {
       {/* Filament glow when on */}
       {on && (
         <motion.ellipse
-          cx="12" cy="10" rx="3" ry="4"
+          cx="12"
+          cy="10"
+          rx="3"
+          ry="4"
           fill="url(#bulb-glow-true)"
           animate={{ opacity: [0.6, 1, 0.6] }}
           transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}

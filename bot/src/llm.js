@@ -66,7 +66,8 @@ const tools = [
     type: 'function',
     function: {
       name: 'getRooms',
-      description: 'Get a list of all rooms with their name, status, total devices, how many devices are ON/OFF, and their total power consumption.'
+      description:
+        'Get a list of all rooms with their name, status, total devices, how many devices are ON/OFF, and their total power consumption.'
     }
   },
   {

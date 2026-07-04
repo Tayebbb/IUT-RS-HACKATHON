@@ -9,7 +9,9 @@ class DeviceService {
    * @param {import('../store/deviceStore').DeviceStore} deps.deviceStore
    */
   constructor({ deviceStore }) {
-    if (!deviceStore) {throw new Error('DeviceService requires deviceStore');}
+    if (!deviceStore) {
+      throw new Error('DeviceService requires deviceStore');
+    }
     this._store = deviceStore;
   }
 

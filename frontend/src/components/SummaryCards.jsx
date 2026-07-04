@@ -52,7 +52,11 @@ export default function SummaryCards({ usage, alerts }) {
       <StatCard
         label="Energy Today"
         value={formatKwh(kwh)}
-        sub={usage?.energyCostBdt !== undefined ? `Est. Cost: ${usage.energyCostBdt} BDT` : "Since local midnight"}
+        sub={
+          usage?.energyCostBdt !== undefined
+            ? `Est. Cost: ${usage.energyCostBdt} BDT`
+            : 'Since local midnight'
+        }
         tone="good"
         delay={0.05}
       />

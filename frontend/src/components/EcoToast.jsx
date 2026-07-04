@@ -26,7 +26,10 @@ export default function EcoToast({ notifications, onDismiss }) {
             {/* Shimmer sweep */}
             <motion.div
               className="pointer-events-none absolute inset-0"
-              style={{ background: 'linear-gradient(90deg, transparent, rgba(16,185,129,0.06), transparent)' }}
+              style={{
+                background:
+                  'linear-gradient(90deg, transparent, rgba(16,185,129,0.06), transparent)'
+              }}
               animate={{ x: ['-100%', '200%'] }}
               transition={{ duration: 2, ease: 'linear' }}
             />
@@ -45,8 +48,8 @@ export default function EcoToast({ notifications, onDismiss }) {
               </div>
               <p className="text-sm font-semibold text-white">{n.roomName}</p>
               <p className="mt-1 text-xs leading-relaxed text-slate-400">
-                {n.devicesShutdown} device{n.devicesShutdown !== 1 ? 's' : ''} automatically
-                powered down after sustained inactivity.
+                {n.devicesShutdown} device{n.devicesShutdown !== 1 ? 's' : ''} automatically powered
+                down after sustained inactivity.
               </p>
               {n.savingsBdt > 0 && (
                 <p className="mt-2 text-xs font-semibold text-emerald-400">

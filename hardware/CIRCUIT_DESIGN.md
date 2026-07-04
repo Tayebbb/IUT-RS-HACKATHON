@@ -31,11 +31,11 @@ graph TD
     AC -->|Neutral Wire| Loads[Room Loads: Fans & Lights]
     DC[5V DC Adapter] -->|VIN / 5V| ESP[ESP32 Microcontroller]
     DC -->|VCC| Relay[5V Relay Module]
-    
+
     %% AC Path
     ACS -->|Measured Live AC| Relay
     Relay -->|Switched Live AC| Loads
-    
+
     %% DC Logic Path
     ESP -->|GPIO 34 Analog Read| ACS
     ESP -->|GPIO 18 Digital Out| Relay
@@ -43,7 +43,7 @@ graph TD
     ESP -->|GPIO 21 Digital Out| Relay
     ESP -->|GPIO 16 Digital Out| Relay
     ESP -->|GPIO 17 Digital Out| Relay
-    
+
     %% Common Ground
     ESP -.->|GND| DC
     Relay -.->|GND| DC

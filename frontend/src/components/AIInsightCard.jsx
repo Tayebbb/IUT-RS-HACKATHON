@@ -8,13 +8,18 @@ import { useState, useEffect } from 'react';
 function useTypewriter(text, speed = 18) {
   const [displayed, setDisplayed] = useState('');
   useEffect(() => {
-    if (!text) { setDisplayed(''); return; }
+    if (!text) {
+      setDisplayed('');
+      return;
+    }
     setDisplayed('');
     let i = 0;
     const timer = setInterval(() => {
       setDisplayed(text.slice(0, i + 1));
       i += 1;
-      if (i >= text.length) {clearInterval(timer);}
+      if (i >= text.length) {
+        clearInterval(timer);
+      }
     }, speed);
     return () => clearInterval(timer);
   }, [text, speed]);
@@ -42,7 +47,9 @@ function AnalysingSkeleton() {
           animate={{ scale: [1, 1.6, 1], opacity: [0.5, 1, 0.5] }}
           transition={{ duration: 0.9, repeat: Infinity }}
         />
-        <span className="text-[10px] tracking-widest text-cyan-400/70 uppercase">AI Analysing…</span>
+        <span className="text-[10px] tracking-widest text-cyan-400/70 uppercase">
+          AI Analysing…
+        </span>
       </div>
     </div>
   );
@@ -75,7 +82,9 @@ function InsightText({ text }) {
  * @param {{ insight: string|null, isPowerAnomaly: boolean }} props
  */
 export default function AIInsightCard({ insight, isPowerAnomaly }) {
-  if (!isPowerAnomaly) {return null;}
+  if (!isPowerAnomaly) {
+    return null;
+  }
 
   return (
     <AnimatePresence>
@@ -93,7 +102,9 @@ export default function AIInsightCard({ insight, isPowerAnomaly }) {
           {/* Animated glow dot */}
           <motion.div
             className="h-2 w-2 flex-shrink-0 rounded-full bg-cyan-400"
-            animate={insight ? { scale: 1, opacity: 1 } : { scale: [1, 1.5, 1], opacity: [0.6, 1, 0.6] }}
+            animate={
+              insight ? { scale: 1, opacity: 1 } : { scale: [1, 1.5, 1], opacity: [0.6, 1, 0.6] }
+            }
             transition={{ duration: 1.2, repeat: insight ? 0 : Infinity }}
           />
           <span className="bg-gradient-to-r from-cyan-300 to-purple-400 bg-clip-text text-[10px] font-semibold uppercase tracking-widest text-transparent">
@@ -111,11 +122,7 @@ export default function AIInsightCard({ insight, isPowerAnomaly }) {
         </div>
 
         {/* Content area */}
-        {insight ? (
-          <InsightText text={insight} />
-        ) : (
-          <AnalysingSkeleton />
-        )}
+        {insight ? <InsightText text={insight} /> : <AnalysingSkeleton />}
       </motion.div>
     </AnimatePresence>
   );

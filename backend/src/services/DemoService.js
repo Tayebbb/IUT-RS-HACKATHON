@@ -17,7 +17,7 @@ class DemoService {
 
   /**
    * Triggers a specific demo scenario.
-   * @param {string} scenario 
+   * @param {string} scenario
    * @returns {Object} Result of the operation.
    */
   triggerScenario(scenario) {
