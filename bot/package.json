@@ -13,7 +13,7 @@
     "format:check": "prettier --check \"src/**/*.js\""
   },
   "dependencies": {
-    "discord.js": "^14.15.3",
+    "discord.js": "^14.26.5",
     "dotenv": "^16.4.5",
     "socket.io-client": "^4.7.5"
   },
